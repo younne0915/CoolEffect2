@@ -8,9 +8,8 @@
 		_BumpScale("Bump Scale", float) = 1.0
 		_Specular("Specular", Color) = (1,1,1,1)
 		_Gloss("Gloss", Range(8.0, 256)) = 20
-		_FlashTex("FlashTex", 2D) = "white" {}
-		_FlashColor("Color", Color) = (1,1,1,1)
-    }
+		
+	}
     SubShader
     {
         Tags { "RenderType"="Opaque" }
@@ -42,6 +41,7 @@
                 float4 vertex : SV_POSITION;
 				float3 tangentLightDir : TEXCOORD2;
 				float3 tangentViewDir : TEXCOORD3;
+				float3 worldPos : TEXCOORD4;
             };
 
             sampler2D _MainTex;
@@ -52,15 +52,13 @@
 			float _BumpScale;
 			fixed4 _Specular;
 			float _Gloss;
-			fixed4 _FlashColor;
-
-			sampler2D _FlashTex;
+			
 
             v2f vert (appdata v)
             {
                 v2f o;
                 o.vertex = UnityObjectToClipPos(v.vertex);
-
+				o.worldPos = mul(unity_ObjectToWorld, v.vertex);
 
                 o.uv.xy = TRANSFORM_TEX(v.uv, _MainTex);
 				o.uv.zw = TRANSFORM_TEX(v.uv, _BumpMap);
@@ -78,11 +76,6 @@
 				float3 tangentLightDir = normalize(i.tangentLightDir);
 				float3 tangentViewDir = normalize(i.tangentViewDir);
 
-				float2 flashUv = i.uv;
-                // sample the texture
-				flashUv.xy += _Time.y;
-				fixed4 flashCol = tex2D(_FlashTex, flashUv.xy) * _FlashColor;
-
                 fixed4 col = tex2D(_MainTex, i.uv.xy) * _AlbedoColor;
 				fixed4 packedNormal = tex2D(_BumpMap, i.uv.zw);
 				fixed3 tangentNormal = UnpackNormal(packedNormal);
@@ -92,8 +85,8 @@
 				fixed3 diffuse = _LightColor0.rgb * col * max(0, dot(tangentNormal, tangentLightDir));
 				fixed3 halfDir = normalize(tangentLightDir + tangentViewDir);
 				fixed3 specular = _LightColor0.rgb * _Specular.rgb * pow(max(0, dot(tangentNormal, halfDir)), _Gloss);
-                // apply fog
-				col = fixed4(ambient + diffuse + specular + flashCol, 1);
+
+				col = fixed4(ambient + diffuse + specular, 1);
                 UNITY_APPLY_FOG(i.fogCoord, col);
 
                 return col;
