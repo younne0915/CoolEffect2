@@ -9,16 +9,17 @@
 		_Specular("Specular", Color) = (1,1,1,1)
 		_Gloss("Gloss", Range(8.0, 256)) = 20
 		_DissolveColor("DissolveColor", Color) = (1,1,1,1)
-		_ColorFactor("ColorFactor", Range(0,1)) = 0.7
+		_ColorFactor("ColorFactor", Range(0, 0.08)) = 0.08
 		_DissolveThreshold("DissolveThreshold", Float) = 0
 	}
     SubShader
     {
-        Tags { "RenderType"="Opaque" }
+        Tags { "RenderType"="Opaque"}
         LOD 100
 
         Pass
         {
+			Tags { "LightMode" = "ForwardBase"  }
 			Cull Off
 
             CGPROGRAM
@@ -28,7 +29,11 @@
             #pragma multi_compile_fog
 
             #include "UnityCG.cginc"
-			 #include "Lighting.cginc"
+			#include "Lighting.cginc"
+
+			#pragma multi_compile_fwdbase
+			// shadow helper functions and macros
+			 #include "AutoLight.cginc"
 
             struct appdata
             {
@@ -36,16 +41,18 @@
                 float2 uv : TEXCOORD0;
 				half3 normal    : NORMAL;
 				half4 tangent : TANGENT;
+				float2 uv1      : TEXCOORD1;
             };
 
             struct v2f
             {
                 float4 uv : TEXCOORD0;
                 UNITY_FOG_COORDS(1)
-                float4 vertex : SV_POSITION;
+                float4 pos : SV_POSITION;
 				float3 tangentLightDir : TEXCOORD2;
 				float3 tangentViewDir : TEXCOORD3;
 				float3 worldPos : TEXCOORD4;
+				SHADOW_COORDS(5)
             };
 
             sampler2D _MainTex;
@@ -58,13 +65,13 @@
 			float _Gloss;
 			fixed4 _DissolveColor;
 
-			uniform fixed4 _ColorFactor;
+			uniform fixed _ColorFactor;
 			uniform fixed _DissolveThreshold;
 
             v2f vert (appdata v)
             {
                 v2f o;
-                o.vertex = UnityObjectToClipPos(v.vertex);
+                o.pos = UnityObjectToClipPos(v.vertex);
 				o.worldPos = mul(unity_ObjectToWorld, v.vertex);
 
                 o.uv.xy = TRANSFORM_TEX(v.uv, _MainTex);
@@ -74,7 +81,8 @@
 				float3x3 matrixRot = float3x3(v.tangent.xyz, bioNormal, v.normal);
 				o.tangentLightDir = mul(matrixRot, ObjSpaceLightDir(v.vertex)).xyz;
 				o.tangentViewDir = mul(matrixRot, ObjSpaceViewDir(v.vertex)).xyz;
-                UNITY_TRANSFER_FOG(o,o.vertex);
+                UNITY_TRANSFER_FOG(o,o.pos);
+				TRANSFER_SHADOW(o);
                 return o;
             }
 
@@ -95,24 +103,48 @@
 				fixed3 diffuse = _LightColor0.rgb * col * max(0, dot(tangentNormal, tangentLightDir));
 				fixed3 halfDir = normalize(tangentLightDir + tangentViewDir);
 				fixed3 specular = _LightColor0.rgb * _Specular.rgb * pow(max(0, dot(tangentNormal, halfDir)), _Gloss);
-                // apply fog
 
+				fixed shadow = 1;
+				shadow = SHADOW_ATTENUATION(i);
 
-				/*float2 flashUv = i.worldPos.xy * _FlashFactor.xy + _FlashFactor.zw * _Time.y;
-				fixed4 flashCol = tex2D(_FlashTex, flashUv) * _FlashColor;*/
-
-				//col = fixed4(ambient + diffuse + specular + flashCol, 1);
-
-				//return col;
-
-				col = fixed4(ambient + diffuse + specular, 1);
+				col = fixed4(ambient + (diffuse + specular) * shadow, 1);
 				UNITY_APPLY_FOG(i.fogCoord, col);
 
 				fixed lerpFactor = saturate(sign(_ColorFactor - factor));
 				return lerpFactor * _DissolveColor + (1 - lerpFactor) * col;
-
             }
             ENDCG
         }
+
+		Pass
+		{
+			Tags { "LightMode" = "ShadowCaster" }
+
+			CGPROGRAM
+			#pragma vertex vert
+			#pragma fragment frag
+			#pragma multi_compile_shadowcaster
+			#include "UnityCG.cginc"
+
+			struct v2f
+			{
+				float3 vertex : TEXCOORD0;
+				float4 pos : SV_POSITION;
+			};
+
+			v2f vert(appdata_base v)
+			{
+				v2f o;
+				TRANSFER_SHADOW_CASTER_NORMALOFFSET(o)
+				return o;
+			}
+
+			float4 frag(v2f i) : SV_Target
+			{
+				SHADOW_CASTER_FRAGMENT(i)
+			}
+
+			ENDCG
+		}
     }
 }
