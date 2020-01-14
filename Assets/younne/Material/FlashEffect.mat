@@ -56,7 +56,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _OutlinePattern:
-        m_Texture: {fileID: 2800000, guid: 69ad6931e1619d448b2a63c92e025e44, type: 3}
+        m_Texture: {fileID: 2800000, guid: 12ef7cbdfe0e143fa858a324456c8979, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _ParallaxMap:
@@ -64,18 +64,23 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
-    - _BumpScale: 1.02
+    - _BumpScale: 1.8
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
     - _FlashStrength: 1
-    - _Gloss: 10
+    - _GlobalOutlineDepthBias: 9
+    - _Gloss: 23
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
     - _Metallic: 0
     - _Mode: 0
     - _OcclusionStrength: 1
+    - _OutlineDepthBias: 11
+    - _OutlinePatternSize: 12
+    - _OutlineScaleMax: 8
+    - _OutlineThickness: 2
     - _Parallax: 0.02
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
@@ -83,9 +88,12 @@ Material:
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
-    - _AlbedoColor: {r: 0.49803922, g: 0.49803922, b: 0.49803922, a: 1}
+    - _AlbedoColor: {r: 0.5471698, g: 0.498131, b: 0.498131, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _DirectionalLightColor1: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _FlashColor: {r: 1, g: 1, b: 1, a: 1}
     - _FlashFactor: {r: 0.29, g: 0.13, b: 0, a: -1.14}
-    - _Specular: {r: 1, g: 1, b: 1, a: 1}
+    - _OutlineColor: {r: 0.764151, g: 0.21266466, b: 0.21266466, a: 1}
+    - _OutlineEffectColor: {r: 0.0990566, g: 0.2075512, b: 1, a: 0.4392157}
+    - _Specular: {r: 0.5422014, g: 0.5754717, b: 0.23616058, a: 1}

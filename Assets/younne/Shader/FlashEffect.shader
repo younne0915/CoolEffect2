@@ -1,5 +1,9 @@
 ﻿// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
 
+// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
+
+// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
+
 Shader "younne/FlashEffect"
 {
     Properties
@@ -10,16 +14,157 @@ Shader "younne/FlashEffect"
 		_BumpScale("Bump Scale", float) = 1.0
 		_Specular("Specular", Color) = (1,1,1,1)
 		_Gloss("Gloss", Range(8.0, 256)) = 20
+		_OutlineThickness("OutlineThickness", Range(0, 256)) = 0
+		_OutlinePatternSize("OutlinePatternSize", Range(0, 256)) = 0
+		_OutlineDepthBias("OutlineDepthBias", Range(0, 256)) = 0
+		_GlobalOutlineDepthBias("_GlobalOutlineDepthBias", Range(0, 256)) = 0
+		_OutlineScaleMax("OutlineScaleMax", Range(0, 256)) = 0
 		[NoScaleOffset] _OutlinePattern("Outline Pattern", 2D) = "" {}
+		_OutlineEffectColor("_OutlineEffectColor", Color) = (1,1,1,1)
+		_OutlineColor("OutlineColor", Color) = (1,1,1,1)
 
 	}
     SubShader
     {
-        Tags { "RenderType"="Opaque" }
-        LOD 100
+
+		Pass
+		{
+			Tags
+			{
+				"RenderType" = "Opaque"
+				"LightMode" = "ForwardBase"
+			}
+
+			ZWrite On
+			Cull Front
+			//Cull Back
+
+			CGPROGRAM
+			#pragma vertex vertOutLine
+			#pragma fragment fragOutLine
+			//#pragma target 3.0
+
+			#include "UnityCG.cginc"
+			#include "Lighting.cginc"
+			#include "AutoLight.cginc"
+
+			struct OutlineVertexOutput
+			{
+				float4 pos : SV_POSITION;
+				float4 UV : TEXCOORD0;
+				float3 normal : TEXCOORD1;
+				float3 worldPos : TEXCOORD2;
+			};
+
+			struct OutlineVertexInput
+			{
+				float4 vertex : POSITION;
+				float3 normal : NORMAL;
+				float4 texcoord : TEXCOORD0;
+				float4 color : COLOR;
+			};
+
+			float _OutlineThickness;
+			float _OutlinePatternSize;
+			float _OutlineDepthBias;
+			float _GlobalOutlineDepthBias;
+			float _OutlineScaleMax = 50.0f;
+
+			sampler2D _OutlinePattern;
+			float4 _OutlineEffectColor;
+			float4 _OutlineColor;
+
+			sampler2D _MainTex;
+			float4 _MainTex_ST;
+
+#ifdef FP_PRECISION_HALF
+#define float_t  half
+#define float2_t half2
+#define float3_t half3
+#define float4_t half4
+#else
+#define float_t  float
+#define float2_t float2
+#define float3_t float3
+#define float4_t float4
+#endif
+
+			float3_t BlendLinearBurn(float3_t a, float3_t b)
+			{
+				return a + b - float3_t(1.0h, 1.0h, 1.0h);
+			}
+
+			OutlineVertexOutput vertOutLine(OutlineVertexInput v) {
+
+				OutlineVertexOutput o;
+
+				float3 worldPos = mul(unity_ObjectToWorld, float4(v.vertex.xyz, 1)).xyz;
+				float depthOffset = _OutlineDepthBias + _GlobalOutlineDepthBias;
+				float3 viewDir = normalize(_WorldSpaceCameraPos - worldPos).xyz;
+				float3 offsetVector = depthOffset * viewDir;
+
+				worldPos += offsetVector;
+				float4 projPos = UnityObjectToClipPos(v.vertex);
+				float3 normal = v.normal;
+				float4 projNormal = normalize(UnityObjectToClipPos(float4(normal, 0)));
+
+				// Scale the normal to be the size of one pixel, but not to exceed kOutlineNormalScaleMax
+				// so the edge doesn't get too thick when the character is too far away
+				float wScale = sign(projPos.w) * min(abs(projPos.w), _OutlineScaleMax);
+
+				const float kOutlineThicknessScale = 1.6f;
+				float2 halfScreenSize = 0.5f * _ScreenParams.xy;
+				float4 normalScale = (kOutlineThicknessScale * _OutlineThickness * wScale) / halfScreenSize.xyxx;
+
+				projNormal *= normalScale;
+				projPos += projNormal;
+
+				o.pos = projPos;
+
+				float2 texcoord = TRANSFORM_TEX(v.texcoord.xy, _MainTex);
+				o.UV = float4(texcoord, projPos.xy / (projPos.w * _OutlinePatternSize));
+				o.normal = mul(unity_ObjectToWorld, float4(normal, 0)).xyz;
+				o.worldPos = worldPos;
+				return o;
+			}
+
+			float4_t fragOutLine(OutlineVertexOutput IN, fixed facing : VFACE) : SV_Target
+			{
+				float4_t finalColor;
+
+				float4_t baseColor = tex2D(_MainTex, IN.UV.xy);
+				float3_t outlinePatternColor = tex2D(_OutlinePattern, IN.UV.zw).rgb;
+				float_t opacity = baseColor.a;
+
+				float3_t originalColor = baseColor.rgb;
+				/*float3_t outputColor = saturate(originalColor + _OutlineColor - float3_t(1.0h, 1.0h, 1.0h));
+				outputColor = lerp(originalColor, outputColor, outlinePatternColor.r);*/
+
+				//outputColor = lerp(outputColor, _OutlineEffectColor.rgb, _OutlineEffectColor.a);
+
+				float3_t outputColor = lerp(originalColor, _OutlineEffectColor.rgb, 0.5);
+
+				finalColor = float4_t(outputColor, opacity);
+
+				return finalColor;
+			}
+
+			ENDCG
+		}
+
 
         Pass
-        {
+        {        
+			Tags
+			{
+				"RenderType" = "Opaque" 
+				"LightMode" = "ForwardBase"
+			}
+
+			//Cull Back
+			Blend One Zero
+			ZWrite On
+
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
@@ -97,190 +242,6 @@ Shader "younne/FlashEffect"
             ENDCG
         }
 
-		Pass
-		{
-			CGPROGRAM
-			#pragma vertex vertOutLine
-			#pragma fragment fragOutLine
-
-			#include "UnityCG.cginc"
-			#include "Lighting.cginc"
-
-			struct OutlineVertexOutput
-			{
-				float4 pos : POSITION;
-				float4 UV : TEXCOORD0;
-				float3 normal : TEXCOORD1;
-				float3 worldPos : TEXCOORD2;
-			};
-
-			struct OutlineVertexInput
-			{
-				float4 vertex : POSITION;
-				float3 normal : NORMAL;
-				float4 texcoord : TEXCOORD0;
-				float4 color : COLOR;
-			};
-
-			float _OutlineThickness;
-			float _OutlinePatternSize;
-			float _OutlineDepthBias;
-			float _GlobalOutlineDepthBias;
-			float _OutlineScaleMax = 50.0f;
-			float4 _DirectionalLightColor1;
-
-			float4 _Color;
-			sampler2D _OpacityMap;
-			sampler2D _OutlinePattern;
-			float _Cutoff;
-			float4 _OutlineEffectColor;
-			float4 _OutlineColor;
-
-			sampler2D _MainTex;
-			float4 _MainTex_ST;
-
-//#if ENABLE_CAPTURE_FLAGS
-//			int _ForceNoOutline;
-//			int _RenderAsSolidColor;
-//			int _RenderOutlineAsSolidColor;
-//#endif
-
-#ifdef FP_PRECISION_HALF
-#define float_t  half
-#define float2_t half2
-#define float3_t half3
-#define float4_t half4
-#else
-#define float_t  float
-#define float2_t float2
-#define float3_t float3
-#define float4_t float4
-#endif
-
-			inline float3 GetViewDir(float3 worldPos)
-			{
-				return normalize(_WorldSpaceCameraPos - worldPos).xyz;
-			}
-
-			float4 ApplyDepthOffset(OutlineVertexInput v, float3 worldPos)
-			{
-				float depthOffset = _OutlineDepthBias + _GlobalOutlineDepthBias;
-				float3 viewDir = GetViewDir(worldPos);
-				float3 offsetVector = depthOffset * viewDir;
-
-#if ENABLE_DEPTH_OFFSET
-				float4 mapValue = tex2Dlod(_DepthOffsetMap, float4(v.texcoord.xy, 0.0, 0.0));
-				offsetVector += (_DepthOffset * mapValue.r) * viewDir;
-#endif
-
-				worldPos += offsetVector;
-				return mul(UNITY_MATRIX_VP, float4(worldPos, 1));
-			}
-
-			float4 ComputeOutlineProjPos(OutlineVertexInput v, float3 worldPos, float3 normal)
-			{
-				// Transform the position and normal into projection space
-				float4 projPos = ApplyDepthOffset(v, worldPos);
-				float4 projNormal = normalize(UnityObjectToClipPos(float4(normal, 0)));
-
-				// Scale the normal to be the size of one pixel, but not to exceed kOutlineNormalScaleMax
-				// so the edge doesn't get too thick when the character is too far away
-				float wScale = sign(projPos.w) * min(abs(projPos.w), _OutlineScaleMax);
-
-				const float kOutlineThicknessScale = 1.6f;
-				float2 halfScreenSize = 0.5f * _ScreenParams.xy;
-				float4 normalScale = (kOutlineThicknessScale * _OutlineThickness * wScale) / halfScreenSize.xyxx;
-
-				projNormal *= normalScale;
-				projPos += projNormal;
-				return projPos;
-			}
-
-			float3 GetKeyLightColor() { return _DirectionalLightColor1.rgb; }
-
-			float3_t ApplyKeyLightColor(float3_t inColor)
-			{
-				return inColor * GetKeyLightColor();
-			}
-
-			float3_t BlendLinearBurn(float3_t a, float3_t b)
-			{
-				return a + b - float3_t(1.0h, 1.0h, 1.0h);
-			}
-
-			float4_t ComputeMainColor(OutlineVertexOutput IN, fixed facing)
-			{
-				float4_t baseColor = tex2D(_MainTex, IN.UV.xy);
-				float3_t outlinePatternColor = tex2D(_OutlinePattern, IN.UV.zw).rgb;
-#if ENABLE_OPACITY_MAP
-				float_t opacity = tex2D(_OpacityMap, IN.UV.xy).r;
-#else
-				float_t opacity = baseColor.a;
-#endif
-
-#if ENABLE_ALPHA_CLIP && !GLOBAL_DISABLE_ALPHA_CLIP
-				clip(opacity - _Cutoff);
-#endif
-
-				float3_t outputColor = baseColor.rgb;
-
-#if ENABLE_KEY_LIGHT_COLOR
-				outputColor = ApplyKeyLightColor(outputColor);
-#endif
-
-				// New Ishima Style 2017.02.24
-				float3_t originalColor = outputColor;
-				outputColor = saturate(BlendLinearBurn(outputColor, _OutlineColor));
-				outputColor = lerp(originalColor, outputColor, outlinePatternColor.r);
-
-#if ENABLE_OUTLINE_RIM_LIGHTING
-				outputColor = ApplyRimLighting(IN, baseColor.rgb, facing, outputColor);
-#endif
-
-				// Outline effect color
-				outputColor = lerp(outputColor, _OutlineEffectColor.rgb, _OutlineEffectColor.a);
-
-				//outputColor = ApplyAdditiveColor(IN.worldPos, outputColor);
-
-				return float4_t(outputColor, opacity);
-			}
-
-			float4_t GetMainOutputColor(OutlineVertexOutput IN, fixed facing)
-			{
-
-				float4_t outputColor = ComputeMainColor(IN, facing);
-
-//#if OUTPUT_COLOR_SPACE_GAMMA
-//				outputColor.rgb = LINEAR_TO_GAMMA(outputColor.rgb);
-//#endif
-
-				return outputColor;
-			}
-
-
-			OutlineVertexOutput vertOutLine(OutlineVertexInput v) {
-
-				OutlineVertexOutput o;
-
-				float3 worldPos = mul(unity_ObjectToWorld, float4(v.vertex.xyz, 1)).xyz;
-				float3 normal = v.normal;
-				float4 projPos = ComputeOutlineProjPos(v, worldPos, normal);
-				o.pos = projPos;
-
-				float2 texcoord = TRANSFORM_TEX(v.texcoord.xy, _MainTex);
-				o.UV = float4(texcoord, projPos.xy / (projPos.w * _OutlinePatternSize));
-				o.normal = mul(unity_ObjectToWorld, float4(normal, 0)).xyz;
-				o.worldPos = worldPos;
-				return o;
-			}
-
-			float4_t fragOutLine(OutlineVertexOutput IN, fixed facing : VFACE) : SV_Target
-			{
-				return GetMainOutputColor(IN, facing);
-			}
-
-			ENDCG
-
-		}
+		
     }
 }
