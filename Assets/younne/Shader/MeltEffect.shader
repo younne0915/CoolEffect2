@@ -126,21 +126,28 @@
 			#pragma multi_compile_shadowcaster
 			#include "UnityCG.cginc"
 
+            uniform fixed _DissolveThreshold;
+
 			struct v2f
 			{
 				float3 vertex : TEXCOORD0;
 				float4 pos : SV_POSITION;
+                float3 worldPos : TEXCOORD1;
 			};
 
 			v2f vert(appdata_base v)
 			{
 				v2f o;
 				TRANSFER_SHADOW_CASTER_NORMALOFFSET(o)
+                o.worldPos = mul(unity_ObjectToWorld, v.vertex);
 				return o;
 			}
 
 			float4 frag(v2f i) : SV_Target
 			{
+                float factor = i.worldPos.y - _DissolveThreshold;
+                clip(factor);
+
 				SHADOW_CASTER_FRAGMENT(i)
 			}
 

@@ -252,5 +252,36 @@ Shader "younne/FlashEffect"
         }
 
         
+
+        Pass
+        {
+            Tags { "LightMode" = "ShadowCaster" }
+
+            CGPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+            #pragma multi_compile_shadowcaster
+            #include "UnityCG.cginc"
+            
+            struct v2f
+            {
+                float3 vertex : TEXCOORD0;
+                float4 pos : SV_POSITION;
+            };
+
+            v2f vert(appdata_base v)
+            {
+                v2f o;
+                TRANSFER_SHADOW_CASTER_NORMALOFFSET(o)
+                return o;
+            }
+
+            float4 frag(v2f i) : SV_Target
+            {
+                SHADOW_CASTER_FRAGMENT(i)
+            }
+
+            ENDCG
+        }
     }
 }

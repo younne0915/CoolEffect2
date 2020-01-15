@@ -61,10 +61,10 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Floats:
     - _BumpScale: 1.02
-    - _ColorFactor: 0.0103
+    - _ColorFactor: 0.0674
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
-    - _DissolveThreshold: -0.42
+    - _DissolveThreshold: -0.86
     - _DstBlend: 0
     - _FlashStrength: 1
     - _Gloss: 37
