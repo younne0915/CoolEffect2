@@ -77,10 +77,10 @@ Material:
     - _Metallic: 0
     - _Mode: 0
     - _OcclusionStrength: 1
-    - _OutlineDepthBias: 11
+    - _OutlineDepthBias: 0.0131
     - _OutlinePatternSize: 12
-    - _OutlineScaleMax: 8
-    - _OutlineThickness: 2
+    - _OutlineScaleMax: 211
+    - _OutlineThickness: 0.55
     - _Parallax: 0.02
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
@@ -95,5 +95,5 @@ Material:
     - _FlashColor: {r: 1, g: 1, b: 1, a: 1}
     - _FlashFactor: {r: 0.29, g: 0.13, b: 0, a: -1.14}
     - _OutlineColor: {r: 0.764151, g: 0.21266466, b: 0.21266466, a: 1}
-    - _OutlineEffectColor: {r: 0.0990566, g: 0.2075512, b: 1, a: 0.4392157}
+    - _OutlineEffectColor: {r: 0.057271298, g: 0.16399913, b: 0.9339623, a: 0.4392157}
     - _Specular: {r: 0.5422014, g: 0.5754717, b: 0.23616058, a: 1}
