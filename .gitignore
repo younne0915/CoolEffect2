@@ -1,6 +1,7 @@
 [Ll]ibrary/
 [Oo]bj/
 [Tt]emp/
+[Ll]ogs/
 
 .vs/
 *.csproj
