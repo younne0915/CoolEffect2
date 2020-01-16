@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: MeltEffect
-  m_Shader: {fileID: 4800000, guid: d7a1c82c78c110a4aa750036e54b3ae7, type: 3}
+  m_Name: TempMat
+  m_Shader: {fileID: 4800000, guid: a96c492f27b314aaf9c514638ad8146f, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -19,8 +19,12 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
+    - _BlurTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _BumpMap:
-        m_Texture: {fileID: 2800000, guid: 3b5b7be0f2332c24f89a2af018daa62d, type: 3}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _DetailAlbedoMap:
@@ -39,12 +43,8 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _FlashTex:
-        m_Texture: {fileID: 2800000, guid: 1d784053fd021d44ebc33ac31215b11f, type: 3}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 2800000, guid: 4e2f32e9a1fefc24092337ae061f3dbc, type: 3}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:
@@ -60,14 +60,10 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
-    - _BumpScale: 1.02
-    - _ColorFactor: 0.0674
+    - _BumpScale: 1
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
-    - _DissolveThreshold: -1.41
     - _DstBlend: 0
-    - _FlashStrength: 1
-    - _Gloss: 37
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
@@ -81,10 +77,5 @@ Material:
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
-    - _AlbedoColor: {r: 0.49803922, g: 0.49803922, b: 0.49803922, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _DissolveColor: {r: 0.35686278, g: 0.9607843, b: 0.35820588, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _FlashColor: {r: 1, g: 1, b: 1, a: 1}
-    - _FlashFactor: {r: 0.29, g: 0.13, b: 0, a: -1.14}
-    - _Specular: {r: 1, g: 1, b: 1, a: 1}
