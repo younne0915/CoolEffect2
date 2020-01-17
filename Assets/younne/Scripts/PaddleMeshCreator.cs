@@ -8,7 +8,20 @@ using UnityEngine.UI;
 
 public class PaddleMeshCreator : MonoBehaviour
 {
-    public MeshRenderer tempRender;
+    [Range(2, 30)]
+    [SerializeField]
+    private float boost = 10;
+
+    [Range(0, 0.02f)]
+    [SerializeField]
+    private float dragXThreshold = 0.008f;
+
+    [Range(0, 0.02f)]
+    [SerializeField]
+    private float dragYThreshold = 0.006f;
+
+    [SerializeField]
+    private Camera grabCamera;
 
     private bool m_IsPressFire = false;
 
@@ -34,29 +47,57 @@ public class PaddleMeshCreator : MonoBehaviour
 
     private RenderTexture _tempTexture;
 
-    //private RenderTexture _opaqueTexture;
-
     public RawImage rawImage;
 
     private Material m_MainMaterial;
+
+    private Transform m_Paddle;
+    private bool m_StartRoken = false;
+
+    private float m_PassTime = 0;
 
     static class ShaderProperties
     {
         public static readonly int TempRenderTexture = Shader.PropertyToID("_Temp");
         public static readonly int BlurRenderTexture = Shader.PropertyToID("_BlurTex");
         public static readonly int MainRenderTexture = Shader.PropertyToID("_MainTex");
-
-
     }
 
     private void Awake()
     {
         m_CommandBuffer = new CommandBuffer();
+        grabCamera.enabled = false;
     }
 
     private void Update()
     {
         AttempCreatePaddleMesh();
+        //AttempStartReckon();
+    }
+
+    private void SetRender()
+    {
+        StartMeshUpdate();
+        FinishMeshUpdate();
+        //UpdateCommandBuffers();
+    }
+
+    private void AttempStartReckon()
+    {
+        if (m_StartRoken)
+        {
+            m_PassTime += Time.time;
+            if(m_PassTime > 0.5f)
+            {
+                m_TempVerticles.Clear();
+                m_Tempuvs.Clear();
+                m_TempTriangles.Clear();
+
+                m_StartRoken = false;
+
+                SetRender();
+            }
+        }
     }
 
     private void AttempCreatePaddleMesh()
@@ -68,12 +109,17 @@ public class PaddleMeshCreator : MonoBehaviour
         if (CrossPlatformInputManager.GetButtonDown("Fire1"))
         {
             m_IsPressFire = true;
+            grabCamera.enabled = true;
 
             if (m_Mesh == null)
             {
                 GameObject go = new GameObject("Paddle");
+                m_Paddle = go.transform;
                 m_MeshFilter = go.AddComponent<MeshFilter>();
                 m_MeshRender = go.AddComponent<MeshRenderer>();
+                go.transform.position = transform.position;
+                go.layer = LayerMask.NameToLayer("Paddle");
+
                 m_Mesh = new Mesh();
                 m_MeshFilter.mesh = m_Mesh;
 
@@ -102,8 +148,11 @@ public class PaddleMeshCreator : MonoBehaviour
         {
             m_IsPressFire = false;
             m_AddOrgrinal = false;
+
+            grabCamera.enabled = false;
+            m_StartRoken = true;
         }
-        
+
 
         if (m_IsPressFire)
         {
@@ -111,7 +160,9 @@ public class PaddleMeshCreator : MonoBehaviour
             var vertextOffset = 3;
             if (m_AddOrgrinal)
             {
-                Vector3 dir = mousePosition - m_LastPress;
+                float randomBeta = Random.Range(0.2f, 1);
+                Vector3 dirNormal = (mousePosition - m_LastPress).normalized;
+                Vector3 dir = dirNormal * boost * randomBeta;
                 Vector3 crossVec3 = Quaternion.Euler(0, 0, 90) * dir;
 
                 vertextOffset = m_TempVerticles.Count;
@@ -119,42 +170,69 @@ public class PaddleMeshCreator : MonoBehaviour
                 Vector3 v1 = m_LastPress + crossVec3;
                 Vector3 v2 = m_LastPress - crossVec3;
 
-                m_TempVerticles.Add(v1);
+                Vector2 dragDir = new Vector2(dirNormal.x * dragXThreshold, dirNormal.y * dragYThreshold);
+
                 float uvx = v1.x / Screen.width;
                 float uvy = v1.y / Screen.height;
-                m_Tempuvs.Add(new Vector2(uvx, uvy));
+                Vector2 uvFinal = new Vector2(uvx, uvy) - dragDir;
+                m_Tempuvs.Add(uvFinal);
 
-                Debug.LogErrorFormat("uv1.x = {0}, uv1.y = {1}", uvx, uvy);
-
-                m_TempVerticles.Add(v2);
                 uvx = v2.x / Screen.width;
                 uvy = v2.y / Screen.height;
-                m_Tempuvs.Add(new Vector2(uvx, uvy));
+                Vector2 uvFinal2 = new Vector2(uvx, uvy) - dragDir;
+                m_Tempuvs.Add(uvFinal2);
 
-                Debug.LogErrorFormat("uv2.x = {0}, uv2.y = {1}", uvx, uvy);
+                v1 = ConvertScreenToPaddleSpace(v1);
+                m_TempVerticles.Add(v1);
+                v2 = ConvertScreenToPaddleSpace(v2);
+                m_TempVerticles.Add(v2);
+
+                //if (vertextOffset == 0)
+                //{
+                //    m_TempTriangles.Add(vertextOffset + 0);
+                //    m_TempTriangles.Add(vertextOffset + 1);
+                //}
+                //else if(vertextOffset == 2)
+                //{
+                //    //vertextOffset = 2;
+                //    m_TempTriangles.Add(vertextOffset + 0);
+                //    m_TempTriangles.Add(vertextOffset + 0);
+                //    m_TempTriangles.Add(vertextOffset - 1);
+                //    m_TempTriangles.Add(vertextOffset + 1);
+                //}
+                //else
+                //{
+                //    //4
+                //    m_TempTriangles.Add(vertextOffset + 0);
+                //    m_TempTriangles.Add(vertextOffset - 2);
+                //    m_TempTriangles.Add(vertextOffset - 1);
+                //    m_TempTriangles.Add(vertextOffset - 1);
+                //    m_TempTriangles.Add(vertextOffset + 1);
+                //    m_TempTriangles.Add(vertextOffset + 0);
+                //}
 
                 if (vertextOffset == 0)
                 {
-                    m_TempTriangles.Add(vertextOffset + 0);
                     m_TempTriangles.Add(vertextOffset + 1);
+                    m_TempTriangles.Add(vertextOffset + 0);
                 }
-                else if(vertextOffset == 2)
+                else if (vertextOffset == 2)
                 {
                     //vertextOffset = 2;
                     m_TempTriangles.Add(vertextOffset + 0);
                     m_TempTriangles.Add(vertextOffset + 0);
-                    m_TempTriangles.Add(vertextOffset - 1);
                     m_TempTriangles.Add(vertextOffset + 1);
+                    m_TempTriangles.Add(vertextOffset - 1);
                 }
                 else
                 {
                     //4
                     m_TempTriangles.Add(vertextOffset + 0);
+                    m_TempTriangles.Add(vertextOffset - 1);
                     m_TempTriangles.Add(vertextOffset - 2);
-                    m_TempTriangles.Add(vertextOffset - 1);
-                    m_TempTriangles.Add(vertextOffset - 1);
-                    m_TempTriangles.Add(vertextOffset + 1);
                     m_TempTriangles.Add(vertextOffset + 0);
+                    m_TempTriangles.Add(vertextOffset + 1);
+                    m_TempTriangles.Add(vertextOffset - 1);
                 }
 
             }
@@ -168,15 +246,19 @@ public class PaddleMeshCreator : MonoBehaviour
 
             if (vertextOffset <= 2) return;
 
-            StartMeshUpdate();
-            FinishMeshUpdate();
-            UpdateCommandBuffers();
+            SetRender();
         }
     }
 
     private Vector3 ConvertScreenToWorldPoint(Vector3 mousePosition)
     {
-        return Camera.main.ScreenToWorldPoint(mousePosition, Camera.MonoOrStereoscopicEye.Mono);
+        return Camera.main.ScreenToWorldPoint(new Vector3(mousePosition.x, mousePosition.y, 1), Camera.MonoOrStereoscopicEye.Mono);
+    }
+
+    private Vector3 ConvertScreenToPaddleSpace(Vector3 mousePosition)
+    {
+        Vector3 vec3 = ConvertScreenToWorldPoint(mousePosition);
+        return m_Paddle.InverseTransformPoint(vec3);
     }
 
     public void StartMeshUpdate()
@@ -189,6 +271,8 @@ public class PaddleMeshCreator : MonoBehaviour
 
     public void FinishMeshUpdate()
     {
+        if (m_MeshFilter == null) return;
+
         m_Verticles.AddRange(m_TempVerticles);
         m_Triangles.AddRange(m_TempTriangles);
         m_uvs.AddRange(m_Tempuvs);
@@ -204,27 +288,24 @@ public class PaddleMeshCreator : MonoBehaviour
 
     void RemoveCommandBuffers()
     {
-        Camera.main.RemoveCommandBuffer(CameraEvent.AfterEverything, m_CommandBuffer);
+        grabCamera.RemoveCommandBuffer(CameraEvent.AfterEverything, m_CommandBuffer);
     }
 
     void AddCommandBuffers()
     {
-        m_CommandBuffer.Blit(BuiltinRenderTextureType.CameraTarget, _tempTexture);
+        //m_CommandBuffer.Blit(BuiltinRenderTextureType.CameraTarget, _tempTexture);
         m_CommandBuffer.Blit(_tempTexture, _opaqueTexture, m_BlurMaterial, 0);
         rawImage.texture = _opaqueTexture;
 
-        //m_CommandBuffer.SetGlobalTexture(ShaderProperties.BlurRenderTexture, _opaqueTexture);
         m_MeshRender.sharedMaterial.SetTexture(ShaderProperties.BlurRenderTexture, _opaqueTexture);
 
-        Camera.main.AddCommandBuffer(CameraEvent.AfterEverything, m_CommandBuffer);
-
-        tempRender.sharedMaterial.SetTexture(ShaderProperties.BlurRenderTexture, _opaqueTexture);
+        grabCamera.AddCommandBuffer(CameraEvent.AfterEverything, m_CommandBuffer);
     }
 
 
     public void UpdateCameraTarget()
     {
-        Camera.main.targetTexture = null;
+        grabCamera.targetTexture = null;
         if (_opaqueTexture != null)
         {
             _opaqueTexture.Release();
@@ -234,6 +315,7 @@ public class PaddleMeshCreator : MonoBehaviour
             24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
         _opaqueTexture.name = nameof(_opaqueTexture);
         _opaqueTexture.antiAliasing = 1;
+        _opaqueTexture.wrapMode = TextureWrapMode.Clamp;
         _opaqueTexture.Create();
 
         if (_tempTexture != null)
@@ -243,9 +325,11 @@ public class PaddleMeshCreator : MonoBehaviour
 
         _tempTexture = new RenderTexture(Screen.width, Screen.height,
             24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
-        _tempTexture.name = nameof(_opaqueTexture);
+        _tempTexture.name = nameof(_tempTexture);
         _tempTexture.antiAliasing = 1;
         _tempTexture.Create();
+
+        grabCamera.targetTexture = _tempTexture;
 
         UpdateCommandBuffers();
     }
@@ -254,5 +338,10 @@ public class PaddleMeshCreator : MonoBehaviour
     {
         RemoveCommandBuffers();
         AddCommandBuffers();
+    }
+
+    private void LateUpdate()
+    {
+        grabCamera.transform.position = Camera.main.transform.position;
     }
 }
