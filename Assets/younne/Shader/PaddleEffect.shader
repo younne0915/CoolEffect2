@@ -36,6 +36,7 @@
 
             sampler2D _BlurTex;
             float4 _BlurTex_ST;
+            float4 _MainTex_TexelSize;
 
             v2f vert (appdata v)
             {
@@ -49,13 +50,10 @@
 
             fixed4 frag (v2f i) : SV_Target
             {
-                // sample the texture
-                float2 uv = float2(i.uv.x, i.uv.y);
-                fixed4 col = tex2D(_BlurTex, uv);
+                fixed4 col = tex2D(_BlurTex, i.uv);
                 // apply fog
                 UNITY_APPLY_FOG(i.fogCoord, col);
 
-                //return fixed4(1, 0, 0, 1);
                 return col;
 
             }

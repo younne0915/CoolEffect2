@@ -54,13 +54,16 @@ public class PaddleMeshCreator : MonoBehaviour
     private Transform m_Paddle;
     private bool m_StartRoken = false;
 
-    private float m_PassTime = 0;
+    private float m_LeftTime = 10;
+    private Vector2 m_DirNormal;
+    private float m_PassRemoveTime = 0;
 
     static class ShaderProperties
     {
         public static readonly int TempRenderTexture = Shader.PropertyToID("_Temp");
         public static readonly int BlurRenderTexture = Shader.PropertyToID("_BlurTex");
         public static readonly int MainRenderTexture = Shader.PropertyToID("_MainTex");
+        public static readonly int DirVec4 = Shader.PropertyToID("dirVec2");
     }
 
     private void Awake()
@@ -72,22 +75,23 @@ public class PaddleMeshCreator : MonoBehaviour
     private void Update()
     {
         AttempCreatePaddleMesh();
-        //AttempStartReckon();
+        AttempStartReckon();
     }
 
     private void SetRender()
     {
         StartMeshUpdate();
         FinishMeshUpdate();
-        //UpdateCommandBuffers();
     }
 
     private void AttempStartReckon()
     {
         if (m_StartRoken)
         {
-            m_PassTime += Time.time;
-            if(m_PassTime > 0.5f)
+            Debug.LogError("111");
+
+            m_LeftTime -= Time.time;
+            if(m_LeftTime < 0)
             {
                 m_TempVerticles.Clear();
                 m_Tempuvs.Clear();
@@ -95,6 +99,40 @@ public class PaddleMeshCreator : MonoBehaviour
 
                 m_StartRoken = false;
 
+                SetRender();
+
+                m_LeftTime = 10;
+
+                Debug.LogError("222");
+
+            }
+            else
+            {
+
+                int count = m_TempVerticles.Count;
+
+                Debug.LogError("count = " + count);
+
+                if (count >= 2)
+                {
+                    m_TempVerticles.RemoveRange(count - 2, 2);
+                    m_Tempuvs.RemoveRange(count - 2, 2);
+
+                    int vertextOffset = m_TempVerticles.Count;
+                    if (vertextOffset <= 2)
+                    {
+                        m_TempVerticles.Clear();
+                        m_Tempuvs.Clear();
+                        m_TempTriangles.Clear();
+                    }
+                    else
+                    {
+                        int triangleCount = m_TempTriangles.Count;
+                        m_TempTriangles.RemoveRange(triangleCount - 6, 6);
+
+                        Debug.LogError("aaa");
+                    }
+                }
                 SetRender();
             }
         }
@@ -151,6 +189,8 @@ public class PaddleMeshCreator : MonoBehaviour
 
             grabCamera.enabled = false;
             m_StartRoken = true;
+
+            float cnt = m_TempVerticles.Count / 2;
         }
 
 
@@ -161,8 +201,8 @@ public class PaddleMeshCreator : MonoBehaviour
             if (m_AddOrgrinal)
             {
                 float randomBeta = Random.Range(0.2f, 1);
-                Vector3 dirNormal = (mousePosition - m_LastPress).normalized;
-                Vector3 dir = dirNormal * boost * randomBeta;
+                m_DirNormal = (mousePosition - m_LastPress).normalized;
+                Vector3 dir = m_DirNormal * boost * randomBeta;
                 Vector3 crossVec3 = Quaternion.Euler(0, 0, 90) * dir;
 
                 vertextOffset = m_TempVerticles.Count;
@@ -170,7 +210,7 @@ public class PaddleMeshCreator : MonoBehaviour
                 Vector3 v1 = m_LastPress + crossVec3;
                 Vector3 v2 = m_LastPress - crossVec3;
 
-                Vector2 dragDir = new Vector2(dirNormal.x * dragXThreshold, dirNormal.y * dragYThreshold);
+                Vector2 dragDir = new Vector2(m_DirNormal.x * dragXThreshold, m_DirNormal.y * dragYThreshold);
 
                 float uvx = v1.x / Screen.width;
                 float uvy = v1.y / Screen.height;
@@ -283,6 +323,8 @@ public class PaddleMeshCreator : MonoBehaviour
         m_MeshFilter.mesh.SetTriangles(m_Triangles, 0);
         m_MeshFilter.mesh.SetUVs(0, m_uvs);
         m_MeshFilter.mesh.SetColors(m_Colors);
+        m_MeshRender.sharedMaterial.SetVector(ShaderProperties.DirVec4, new Vector4(-m_DirNormal.x, -m_DirNormal.y, 0, 0));
+
     }
 
 

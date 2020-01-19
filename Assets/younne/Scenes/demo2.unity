@@ -438,7 +438,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e1b3a5e4e40564d09845f9b4907a58f6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  boost: 9.6
+  boost: 5
   dragXThreshold: 0.0096
   dragYThreshold: 0.0078
   grabCamera: {fileID: 908895184}
