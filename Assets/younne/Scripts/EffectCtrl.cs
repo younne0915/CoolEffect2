@@ -19,7 +19,10 @@ public class EffectCtrl : MonoBehaviour
     private float motionInterval = 2;
 
     [SerializeField]
-    private Camera grabCam;
+    public Camera grabCam;
+
+    [SerializeField]
+    public Camera mainCam;
 
     public RawImage image;
 
@@ -43,7 +46,7 @@ public class EffectCtrl : MonoBehaviour
 
         if(motionBlur == null)
         {
-            motionBlur = new MotionBlurEffect(grabCam);
+            motionBlur = new MotionBlurEffect(mainCam);
         }
 
         motionBlur.CreateEffect();

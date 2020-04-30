@@ -6,7 +6,7 @@ namespace Sokkayo
 {
     public class EffectSystemBase : IDisposable
     {
-        protected CommandBuffer _cmdBuffer;
+        protected CommandBuffer _opaqueBuffer;
         protected Camera _targetCamera;
         protected Material _mat;
         protected Shader _shader;
@@ -24,7 +24,7 @@ namespace Sokkayo
 
         protected virtual void Initialize()
         {
-            _cmdBuffer = new CommandBuffer() { name = this.ToString() };
+            _opaqueBuffer = new CommandBuffer() { name = this.ToString() };
             CreateMat();
         }
 
@@ -49,14 +49,14 @@ namespace Sokkayo
         {
             if(_targetCamera != null)
             {
-                _targetCamera.AddCommandBuffer(cameraEvent, _cmdBuffer);
+                _targetCamera.AddCommandBuffer(cameraEvent, _opaqueBuffer);
                 //_cmdBuffer.Clear();
             }
         }
 
         public void Dispose()
         {
-            _cmdBuffer.Dispose();
+            _opaqueBuffer.Dispose();
         }
     }
 
