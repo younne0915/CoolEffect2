@@ -21,15 +21,17 @@ public class EffectCtrl : MonoBehaviour
     [SerializeField]
     private Camera grabCam;
 
-    [SerializeField]
-    private RawImage image;
+    public RawImage image;
 
     private float _motionTime = 0;
 
     private MotionBlurEffect motionBlur;
 
+    public static EffectCtrl Instance = null;
+
     private void Awake()
     {
+        Instance = this;
         motionBlurBtn.onClick.AddListener(MotionBlurClick);
     }
 
@@ -41,11 +43,10 @@ public class EffectCtrl : MonoBehaviour
 
         if(motionBlur == null)
         {
-            motionBlur = new MotionBlurEffect(Camera.main);
+            motionBlur = new MotionBlurEffect(grabCam);
         }
 
-        motionBlur.SetColor(image);
-        //motionBlur.ExecuteCmdBuffer(CameraEvent.AfterEverything);
+        motionBlur.CreateEffect();
     }
 
     void LateUpdate()

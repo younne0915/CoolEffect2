@@ -9,29 +9,40 @@ namespace Sokkayo
         protected CommandBuffer _cmdBuffer;
         protected Camera _targetCamera;
         protected Material _mat;
+        protected Shader _shader;
 
         public EffectSystemBase(Camera camera)
         {
-            _cmdBuffer = new CommandBuffer() { name = "EffectSystem" };
-
-            if(camera == null)
+            _targetCamera = camera;
+            if (camera == null)
             {
                 Debug.LogError("[EffectSystem] Effect Target Is Null, Error");
-                return;
             }
-            _targetCamera = camera;
+
+            Initialize();
         }
 
-        protected void CreateMat(Shader shader)
+        protected virtual void Initialize()
         {
-            if(shader == null)
+            _cmdBuffer = new CommandBuffer() { name = this.ToString() };
+            CreateMat();
+        }
+
+        protected void CreateMat()
+        {
+            if(_shader == null)
             {
                 Debug.LogError("shader == null");
             }
             else
             {
-                _mat = new Material(shader);
+                _mat = new Material(_shader);
             }
+        }
+
+        public virtual void CreateEffect()
+        {
+
         }
 
         public void ExecuteCmdBuffer(CameraEvent cameraEvent)

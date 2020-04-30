@@ -8,13 +8,20 @@ namespace Sokkayo
     {
         RenderTexture _targetTex;
         RenderTexture _renderTex;
+        RenderTexture _tempTex;
 
         public MotionBlurEffect(Camera camera) : base(camera)
         {
-            CreateMat(Shader.Find("younne/MotionBlur"));
+            
         }
 
-        public void SetColor(RawImage image)
+        protected override void Initialize()
+        {
+            base.Initialize();
+            _shader = Shader.Find("younne/MotionBlur");
+        }
+
+        public override void CreateEffect()
         {
             if(_targetTex != null)
             {
@@ -44,14 +51,27 @@ namespace Sokkayo
             _cmdBuffer.Clear();
             _cmdBuffer.Blit(_targetTex, _renderTex, _mat, 0);
 
-            image.texture = _renderTex;
+            EffectCtrl.Instance.image.texture = _renderTex;
             
             if (_targetCamera != null)
             {
-                _targetCamera.AddCommandBuffer(CameraEvent.AfterEverything, _cmdBuffer);
+                _targetCamera.AddCommandBuffer(CameraEvent.AfterSkybox, _cmdBuffer);
             }
 
-            //_targetCamera.targetTexture = null;
+            _cmdBuffer.Clear();
+
+            //_tempTex = new RenderTexture(_targetCamera.pixelWidth, _targetCamera.pixelHeight, 0,
+            //        RenderTextureFormat.Default, RenderTextureReadWrite.sRGB);
+            //_tempTex.name = "TempTex";
+            //_tempTex.antiAliasing = 1;
+            //_tempTex.Create();
+
+            CommandBuffer tempBuffer = new CommandBuffer();
+
+
+            tempBuffer.Blit(_renderTex, BuiltinRenderTextureType.CurrentActive);
+
+            Camera.main.AddCommandBuffer(CameraEvent.BeforeForwardAlpha, tempBuffer);
 
         }
     }
