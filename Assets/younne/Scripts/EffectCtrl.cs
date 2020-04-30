@@ -37,13 +37,15 @@ public class EffectCtrl : MonoBehaviour
     {
         //_IsMove = true;
 
+        Debug.LogErrorFormat("MotionBlurClick");
+
         if(motionBlur == null)
         {
             motionBlur = new MotionBlurEffect(Camera.main);
         }
 
         motionBlur.SetColor(image);
-        motionBlur.ExecuteCmdBuffer(CameraEvent.BeforeImageEffects);
+        //motionBlur.ExecuteCmdBuffer(CameraEvent.AfterEverything);
     }
 
     void LateUpdate()

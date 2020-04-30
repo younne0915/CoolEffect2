@@ -24,7 +24,14 @@ namespace Sokkayo
 
         protected void CreateMat(Shader shader)
         {
-            _mat = new Material(shader);
+            if(shader == null)
+            {
+                Debug.LogError("shader == null");
+            }
+            else
+            {
+                _mat = new Material(shader);
+            }
         }
 
         public void ExecuteCmdBuffer(CameraEvent cameraEvent)
@@ -32,7 +39,7 @@ namespace Sokkayo
             if(_targetCamera != null)
             {
                 _targetCamera.AddCommandBuffer(cameraEvent, _cmdBuffer);
-                _cmdBuffer.Clear();
+                //_cmdBuffer.Clear();
             }
         }
 
