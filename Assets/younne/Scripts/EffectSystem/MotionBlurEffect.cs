@@ -6,6 +6,8 @@ namespace Sokkayo
 {
     public class MotionBlurEffect : EffectSystemBase
     {
+        protected override Shader _shader => Shader.Find("younne/MotionBlur");
+
         RenderTexture _renderTex;
         CommandBuffer _transparentBuffer;
 
@@ -16,7 +18,6 @@ namespace Sokkayo
 
         protected override void Initialize()
         {
-            _shader = Shader.Find("younne/MotionBlur");
             base.Initialize();
             _transparentBuffer = new CommandBuffer();
         }
@@ -36,7 +37,13 @@ namespace Sokkayo
 
 
             _opaqueBuffer.Clear();
+            //_opaqueBuffer.Blit(BuiltinRenderTextureType.CurrentActive, _renderTex, _mat, 0);
+
             _opaqueBuffer.Blit(BuiltinRenderTextureType.CurrentActive, _renderTex, _mat, 0);
+
+            //_mat.SetTexture(ShaderProperties.MainRenderTexture, BuiltinRenderTextureType.CurrentActive);
+
+            //_opaqueBuffer.SetGlobalTexture(ShaderProperties.MainRenderTexture, BuiltinRenderTextureType.CurrentActive);
 
             EffectCtrl.Instance.image.texture = _renderTex;
 
@@ -48,7 +55,6 @@ namespace Sokkayo
                 _targetCamera.AddCommandBuffer(CameraEvent.AfterForwardOpaque, _opaqueBuffer);
                 _targetCamera.AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _transparentBuffer);
             }
-
         }
     }
 }

@@ -4,12 +4,17 @@ using UnityEngine.Rendering;
 
 namespace Sokkayo
 {
+    static class ShaderProperties
+    {
+        public static readonly int BlurIntensity = Shader.PropertyToID("_BlurIntensity");
+    }
+
     public class EffectSystemBase : IDisposable
     {
         protected CommandBuffer _opaqueBuffer;
         protected Camera _targetCamera;
         protected Material _mat;
-        protected Shader _shader;
+        protected virtual Shader _shader { get; }
 
         public EffectSystemBase(Camera camera)
         {
@@ -45,13 +50,9 @@ namespace Sokkayo
 
         }
 
-        public void ExecuteCmdBuffer(CameraEvent cameraEvent)
+        public virtual void ReleaseEffect()
         {
-            if(_targetCamera != null)
-            {
-                _targetCamera.AddCommandBuffer(cameraEvent, _opaqueBuffer);
-                //_cmdBuffer.Clear();
-            }
+
         }
 
         public void Dispose()

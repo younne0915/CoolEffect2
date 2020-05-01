@@ -37,6 +37,8 @@
             Texture2D _MainTex; 
             SamplerState sampler_MainTex;
 
+			float _BlurIntensity = 2;
+
             float4 _MainTex_TexelSize;
 
             half4 DownsampleBox4Tap(Texture2D tex, SamplerState samplerTex, float2 uv, float2 texelSize)
@@ -44,10 +46,10 @@
                 float4 d = texelSize.xyxy * float4(-1.0, -1.0, 1.0, 1.0);               
                 half4 s;
 
-                s = tex.Sample(samplerTex, saturate(uv + d.xy * 2));
-                s += tex.Sample(samplerTex, saturate(uv + d.zy * 2));
-                s += tex.Sample(samplerTex, saturate(uv + d.xw * 2));
-                s += tex.Sample(samplerTex, saturate(uv + d.zw * 2));
+                s = tex.Sample(samplerTex, saturate(uv + d.xy * _BlurIntensity));
+                s += tex.Sample(samplerTex, saturate(uv + d.zy * _BlurIntensity));
+                s += tex.Sample(samplerTex, saturate(uv + d.xw * _BlurIntensity));
+                s += tex.Sample(samplerTex, saturate(uv + d.zw * _BlurIntensity));
                 
                 return s * (1.0 / 4.0);
             }
