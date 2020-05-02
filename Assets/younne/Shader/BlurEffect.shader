@@ -37,6 +37,10 @@
             Texture2D _MainTex; 
             SamplerState sampler_MainTex;
 
+			// Camera motion vectors texture
+			TEXTURE2D_SAMPLER2D(_CameraMotionVectorsTexture, sampler_CameraMotionVectorsTexture);
+			float4 _CameraMotionVectorsTexture_TexelSize;
+
 			float _BlurIntensity = 2;
 
             float4 _MainTex_TexelSize;

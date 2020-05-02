@@ -63,9 +63,19 @@ namespace UnityStandardAssets.Characters.ThirdPerson
                 m_Move = v*Vector3.forward + h*Vector3.right;
             }
 #if !MOBILE_INPUT
-			// walk speed multiplier
-	        if (Input.GetKey(KeyCode.LeftShift)) m_Move *= 0.5f;
+            // walk speed multiplier
+            if (Input.GetKey(KeyCode.LeftShift)) m_Move *= 0.5f;
+
+            //if (EffectCtrl.Instance.IsMove)
+            //{
+            //    m_Move *= 0.5f;
+            //}
 #endif
+
+            //if (m_Move.x > 0 || m_Move.y > 0 || m_Move.z > 0)
+            //{
+            //    Debug.LogErrorFormat("EffectCtrl IsMove : {0}", m_Move);
+            //}
 
             // pass all parameters to the character control script
             m_Character.Move(m_Move, crouch, m_Jump);

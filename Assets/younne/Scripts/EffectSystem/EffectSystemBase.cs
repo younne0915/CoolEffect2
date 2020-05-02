@@ -9,12 +9,21 @@ namespace Sokkayo
         public static readonly int BlurIntensity = Shader.PropertyToID("_BlurIntensity");
     }
 
+    public enum EffectState
+    {
+        Idle,
+        Created,
+        Running,
+    }
+
     public class EffectSystemBase : IDisposable
     {
         protected CommandBuffer _opaqueBuffer;
         protected Camera _targetCamera;
         protected Material _mat;
         protected virtual Shader _shader { get; }
+
+        protected EffectState _state = EffectState.Idle;
 
         public EffectSystemBase(Camera camera)
         {
@@ -43,16 +52,18 @@ namespace Sokkayo
             {
                 _mat = new Material(_shader);
             }
+
+            _state = EffectState.Created;
         }
 
-        public virtual void CreateEffect()
+        public virtual void StartEffect()
         {
-
+            _state = EffectState.Running;
         }
 
         public virtual void ReleaseEffect()
         {
-
+            _state = EffectState.Idle;
         }
 
         public void Dispose()

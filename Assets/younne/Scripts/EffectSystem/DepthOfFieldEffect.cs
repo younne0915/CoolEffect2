@@ -13,11 +13,8 @@ namespace Sokkayo
         CommandBuffer _transparentBuffer = new CommandBuffer();
         RenderTexture _renderTex;
 
-        [SerializeField]
-        [Range(1, 50)]
         private float _blurIntensity = 2;
 
-        [Range(1, 5)]
         private int iterator = 6;
 
         private int MaxIterations = 6;
@@ -39,11 +36,11 @@ namespace Sokkayo
             }
         }
 
-        public override void CreateEffect()
+        public override void StartEffect()
         {
-            base.CreateEffect();
+            if (_state == EffectState.Running) return;
 
-            ReleaseEffect();
+            base.StartEffect();
 
             _targetCamera.enabled = true;
 
@@ -60,7 +57,7 @@ namespace Sokkayo
 
             var tempTex = new RenderTexture(_targetCamera.pixelWidth, _targetCamera.pixelHeight, 200,
                    RenderTextureFormat.Default, RenderTextureReadWrite.sRGB);
-            tempTex.name = "RenderTex";
+            tempTex.name = "TempTex";
             tempTex.antiAliasing = 1;
             tempTex.Create();
 
@@ -73,7 +70,6 @@ namespace Sokkayo
             
             for (int i = 0; i < iterator; i++)
             {
-                Debug.LogErrorFormat("aa");
                 var mipDown = _tempRenderTextureDownIds[i];
 
                 _opaqueBuffer.GetTemporaryRT(mipDown,
@@ -85,13 +81,13 @@ namespace Sokkayo
                 source = mipDown;
             }
 
-            _opaqueBuffer.Blit(source, _renderTex);
+            _opaqueBuffer.Blit(source, tempTex);
 
             //RenderTexture total = source;
             //MotionEffectCtrl.Instance.image.texture = source;
 
             _transparentBuffer.Clear();
-            _transparentBuffer.Blit(_renderTex, BuiltinRenderTextureType.CurrentActive);
+            _transparentBuffer.Blit(tempTex, BuiltinRenderTextureType.CurrentActive);
 
             for (int i = 0; i < iterator; i++)
             {
@@ -101,12 +97,9 @@ namespace Sokkayo
 
             if (_targetCamera != null)
             {
-                _targetCamera.AddCommandBuffer(CameraEvent.AfterForwardOpaque, _opaqueBuffer);
+                _targetCamera.AddCommandBuffer(CameraEvent.AfterSkybox, _opaqueBuffer);
             }
             MotionEffectCtrl.Instance.mainCam.AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _transparentBuffer);
-
-
-            
         }
 
 

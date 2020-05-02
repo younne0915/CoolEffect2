@@ -6,6 +6,8 @@ using Sokkayo;
 
 public class MotionEffectCtrl : MonoBehaviour
 {
+    public static MotionEffectCtrl Instance = null;
+
     public Camera grabCam;
     public Camera mainCam;
     public RawImage image;
@@ -15,7 +17,8 @@ public class MotionEffectCtrl : MonoBehaviour
 
     private DepthOfFieldEffect depthOfFieldEffect;
 
-    public static MotionEffectCtrl Instance = null;
+    private bool _IsMove = false;
+    private float _passTime = 0;
 
     private void Awake()
     {
@@ -26,15 +29,31 @@ public class MotionEffectCtrl : MonoBehaviour
 
     private void DepthOfFieldClick()
     {
-        //_IsMove = true;
-
-        Debug.LogErrorFormat("MotionBlurClick");
+        _IsMove = true;
 
         if (depthOfFieldEffect == null)
         {
             depthOfFieldEffect = new DepthOfFieldEffect(grabCam);
         }
 
-        depthOfFieldEffect.CreateEffect();
+        depthOfFieldEffect.StartEffect();
+    }
+
+    private void Update()
+    {
+        if (_IsMove)
+        {
+            _passTime += Time.deltaTime;
+            if(_passTime > 9999999)
+            {
+                _IsMove = false;
+                _passTime = 0;
+
+                if(depthOfFieldEffect != null)
+                {
+                    depthOfFieldEffect.ReleaseEffect();
+                }
+            }
+        }
     }
 }

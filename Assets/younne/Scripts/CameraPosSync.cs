@@ -12,16 +12,25 @@ public class CameraPosSync : MonoBehaviour
     [ExecuteInEditMode]
     private void Start()
     {
+        GetComponent<Camera>().depthTextureMode = DepthTextureMode.Depth;
+
         CalculateDelPos();
     }
 
     void CalculateDelPos()
     {
-        _deltVec = transform.position - targetTrans.position;
+        //_deltVec = transform.position - targetTrans.position;
+
     }
 
     private void LateUpdate()
     {
-        transform.position = targetTrans.position + _deltVec;
+        //transform.position = targetTrans.position + _deltVec;
+    }
+
+    private void OnRenderImage(RenderTexture source, RenderTexture destination)
+    {
+        var mat = new Material(Shader.Find("younne/TestCameraMotion"));
+        Graphics.Blit(source, destination, mat);
     }
 }

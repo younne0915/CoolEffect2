@@ -1532,8 +1532,6 @@ MonoBehaviour:
   mainCam: {fileID: 2004184065}
   image: {fileID: 753045581}
   motionBlurBtn: {fileID: 70961968}
-  depthOfFieldEffect:
-    _blurIntensity: 2.7
 --- !u!4 &1332681877 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 400000, guid: 2ed830309d1c9f640a65bf22d9060af1,

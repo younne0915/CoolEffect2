@@ -11,6 +11,10 @@ public class EffectCtrl : MonoBehaviour
     private Button motionBlurBtn;
 
     private bool _IsMove = false;
+    public bool IsMove
+    {
+        get { return _IsMove; }
+    }
 
     [SerializeField]
     private float speed = 2;
@@ -24,6 +28,9 @@ public class EffectCtrl : MonoBehaviour
     [SerializeField]
     public Camera mainCam;
 
+    [SerializeField]
+    private Transform playerTran;
+
     public RawImage image;
 
     private float _motionTime = 0;
@@ -34,13 +41,19 @@ public class EffectCtrl : MonoBehaviour
 
     private void Awake()
     {
+        mainCam.depthTextureMode = DepthTextureMode.Depth;
+
         Instance = this;
         motionBlurBtn.onClick.AddListener(MotionBlurClick);
+
+        bool issupportsMotionVectors = SystemInfo.supportsMotionVectors;
+
+        Debug.LogErrorFormat("issupportsMotionVectors = {0}", issupportsMotionVectors);
     }
 
     private void MotionBlurClick()
     {
-        //_IsMove = true;
+        _IsMove = true;
 
         Debug.LogErrorFormat("MotionBlurClick");
 
@@ -49,15 +62,15 @@ public class EffectCtrl : MonoBehaviour
             motionBlur = new MotionBlurEffect(mainCam);
         }
 
-        motionBlur.CreateEffect();
+        motionBlur.StartEffect();
     }
 
-    void LateUpdate()
+    void Update()
     {
         if (_IsMove)
         {
-            transform.position += transform.forward * Time.deltaTime * speed;
-            transform.position = new Vector3(transform.position.x, 0, transform.position.z);
+            playerTran.position += playerTran.forward * Time.deltaTime * speed;
+            playerTran.position = new Vector3(playerTran.position.x, 0, playerTran.position.z);
             _motionTime += Time.deltaTime;
 
             if(_motionTime > motionInterval)
@@ -67,4 +80,6 @@ public class EffectCtrl : MonoBehaviour
             }
         }
     }
+
+
 }
