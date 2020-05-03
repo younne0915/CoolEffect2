@@ -6,7 +6,9 @@ namespace Sokkayo
 {
     static class ShaderProperties
     {
-        public static readonly int BlurIntensity = Shader.PropertyToID("_BlurIntensity");
+        public static readonly int BlurSize = Shader.PropertyToID("_BlurSize");
+        public static readonly int PreviousViewProjectionMatrix = Shader.PropertyToID("_PreviousViewProjectionMatrix");
+        public static readonly int CurrentViewProjectionInverseMatrix = Shader.PropertyToID("_CurrentViewProjectionInverseMatrix");
     }
 
     public enum EffectState
@@ -21,13 +23,15 @@ namespace Sokkayo
         protected CommandBuffer _opaqueBuffer;
         protected Camera _targetCamera;
         protected Material _mat;
+        protected EffectDataBase _effectData;
         protected virtual Shader _shader { get; }
 
         protected EffectState _state = EffectState.Idle;
 
-        public EffectSystemBase(Camera camera)
+        public EffectSystemBase(Camera camera, EffectDataBase effectData)
         {
             _targetCamera = camera;
+            _effectData = effectData;
             if (camera == null)
             {
                 Debug.LogError("[EffectSystem] Effect Target Is Null, Error");

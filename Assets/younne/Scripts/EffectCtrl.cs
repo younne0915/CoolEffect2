@@ -31,6 +31,9 @@ public class EffectCtrl : MonoBehaviour
     [SerializeField]
     private Transform playerTran;
 
+    [SerializeField]
+    private MotionBlurEffectData motionBlurEffectData;
+
     public RawImage image;
 
     private float _motionTime = 0;
@@ -60,7 +63,7 @@ public class EffectCtrl : MonoBehaviour
 
         if(motionBlur == null)
         {
-            motionBlur = new MotionBlurEffect(mainCam);
+            motionBlur = new MotionBlurEffect(mainCam, motionBlurEffectData);
         }
 
         motionBlur.StartEffect();
@@ -78,6 +81,16 @@ public class EffectCtrl : MonoBehaviour
             {
                 _IsMove = false;
                 _motionTime = 0;
+
+                if (motionBlur != null)
+                {
+                    motionBlur.ReleaseEffect();
+                }
+            }
+
+            if(motionBlur != null)
+            {
+                motionBlur.Update();
             }
         }
     }

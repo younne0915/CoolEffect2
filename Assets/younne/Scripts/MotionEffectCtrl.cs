@@ -33,7 +33,7 @@ public class MotionEffectCtrl : MonoBehaviour
 
         if (depthOfFieldEffect == null)
         {
-            depthOfFieldEffect = new DepthOfFieldEffect(grabCam);
+            depthOfFieldEffect = new DepthOfFieldEffect(grabCam, null);
         }
 
         depthOfFieldEffect.StartEffect();

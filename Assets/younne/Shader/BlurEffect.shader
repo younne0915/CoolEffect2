@@ -47,7 +47,7 @@
 			Texture2D _CameraDepthTexture;
 			SamplerState sampler_CameraDepthTexture;
 
-			float _BlurIntensity = 2;
+			float _BlurSize = 2;
 
             float4 _MainTex_TexelSize;
 
@@ -56,10 +56,10 @@
                 float4 d = texelSize.xyxy * float4(-1.0, -1.0, 1.0, 1.0);               
                 half4 s;
 
-                s = tex.Sample(samplerTex, saturate(uv + d.xy * _BlurIntensity));
-                s += tex.Sample(samplerTex, saturate(uv + d.zy * _BlurIntensity));
-                s += tex.Sample(samplerTex, saturate(uv + d.xw * _BlurIntensity));
-                s += tex.Sample(samplerTex, saturate(uv + d.zw * _BlurIntensity));
+                s = tex.Sample(samplerTex, saturate(uv + d.xy * _BlurSize));
+                s += tex.Sample(samplerTex, saturate(uv + d.zy * _BlurSize));
+                s += tex.Sample(samplerTex, saturate(uv + d.xw * _BlurSize));
+                s += tex.Sample(samplerTex, saturate(uv + d.zw * _BlurSize));
                 
                 return s * (1.0 / 4.0);
             }

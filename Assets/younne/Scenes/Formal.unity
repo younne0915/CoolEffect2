@@ -1032,7 +1032,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &789032322
 Transform:
   m_ObjectHideFlags: 0
@@ -1670,6 +1670,10 @@ MonoBehaviour:
   grabCam: {fileID: 908895184}
   mainCam: {fileID: 2004184065}
   playerTran: {fileID: 576095980}
+  motionBlurEffectData:
+    blurSize: 0.095
+    iterator: 2
+    maxIterations: 6
   image: {fileID: 753045581}
 --- !u!4 &1332681877 stripped
 Transform:
@@ -2591,7 +2595,7 @@ GameObject:
   - component: {fileID: 2004184065}
   - component: {fileID: 2004184063}
   - component: {fileID: 2004184062}
-  - component: {fileID: 2004184066}
+  - component: {fileID: 2004184064}
   m_Layer: 0
   m_Name: MainCamera
   m_TagString: MainCamera
@@ -2632,6 +2636,19 @@ Behaviour:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2004184060}
   m_Enabled: 1
+--- !u!114 &2004184064
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2004184060}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e3f9ecbb445438348aa31c6599391cd3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetTrans: {fileID: 576095980}
 --- !u!20 &2004184065
 Camera:
   m_ObjectHideFlags: 0
@@ -2675,19 +2692,6 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
---- !u!114 &2004184066
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2004184060}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e3f9ecbb445438348aa31c6599391cd3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  targetTrans: {fileID: 576095980}
 --- !u!1001 &2035386241
 PrefabInstance:
   m_ObjectHideFlags: 0

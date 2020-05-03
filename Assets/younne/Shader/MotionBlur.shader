@@ -19,88 +19,73 @@
 
 			#include "UnityCG.cginc"
 
+			sampler2D _MainTex;
+			half4 _MainTex_TexelSize;
+			sampler2D _CameraDepthTexture;
+			float4x4 _CurrentViewProjectionInverseMatrix;
+			float4x4 _PreviousViewProjectionMatrix;
+			half _BlurSize;
+
 			struct appdata
 			{
 				float4 vertex : POSITION;
-				float2 uv : TEXCOORD0;
+				float2 texcoord : TEXCOORD0;
 			};
 
-			struct v2f
-			{
-				float2 uv : TEXCOORD0;
-				UNITY_FOG_COORDS(1)
-				float4 vertex : SV_POSITION;
+			struct v2f {
+				float4 pos : SV_POSITION;
+				half2 uv : TEXCOORD0;
+				half2 uv_depth : TEXCOORD1;
 			};
-
-			//sampler2D _MainTex;
-			//float4 _MainTex_ST;
-			Texture2D _MainTex;
-			SamplerState sampler_MainTex;
-			float4 _MainTex_TexelSize;
-
-			//Texture2D _CameraDepthTexture;
-			//SamplerState sampler__CameraDepthTexture;
-			//float4 _CameraDepthTexture_TexelSize;
-
-			//Camera motion vectors texture
-			Texture2D _CameraMotionVectorsTexture;
-			SamplerState sampler_CameraMotionVectorsTexture;
-			float4 _CameraMotionVectorsTexture_TexelSize;
-
-			float _BlurIntensity = 2;
-			float _RcpMaxBlurRadius = 1.0 / 10;
-			float _VelocityScale = 2;
-
-			half2 VelocitySetup(float2 texcoord)
-			{
-				// Sample the motion vector.
-				float2 v = _CameraMotionVectorsTexture.Sample(sampler_CameraMotionVectorsTexture, texcoord).rg;
-
-				// Apply the exposure time and convert to the pixel space.
-				v *= (_VelocityScale * 0.5) * _CameraMotionVectorsTexture_TexelSize.zw;
-
-				// Clamp the vector with the maximum blur radius.
-				v /= max(1.0, length(v) * _RcpMaxBlurRadius);
-
-				// Sample the depth of the pixel.
-				//half d = Linear01Depth(_CameraDepthTexture.Sample(sampler_CameraMotionVectorsTexture, texcoord).r);
-				
-				// Pack into 10/10/10/2 format.
-				//return half4((v * _RcpMaxBlurRadius + 1.0) * 0.5, d, 0.0);
-
-				return v;
-			}
-
-			half4 DownsampleBox4Tap(Texture2D tex, SamplerState samplerTex, float2 uv, float2 texelSize)
-			{
-				float2 v = VelocitySetup(uv);
-				uv += _BlurIntensity * v;
-
-				half4 s = tex.Sample(samplerTex, uv);
-				float4 currentColor = 0;
-				for (int i = 0; i < 3; i++, uv += _BlurIntensity * v)
-				{
-					currentColor = tex.Sample(samplerTex, uv);
-					s += currentColor;
-				}
-				s /= 4;
-
-				return fixed4(s.rgb, 1);
-			}
 
 			v2f vert(appdata v)
 			{
 				v2f o;
-				o.vertex = UnityObjectToClipPos(v.vertex);
-				o.uv = v.uv;
-				UNITY_TRANSFER_FOG(o,o.vertex);
+				o.pos = UnityObjectToClipPos(v.vertex);
+
+				o.uv = v.texcoord;
+				o.uv_depth = v.texcoord;
+
+#if UNITY_UV_STARTS_AT_TOP
+				if (_MainTex_TexelSize.y < 0)
+					o.uv_depth.y = 1 - o.uv_depth.y;
+#endif
+
 				return o;
 			}
 
 			fixed4 frag(v2f i) : SV_Target
 			{
-				half4 color = DownsampleBox4Tap(_MainTex, sampler_MainTex, i.uv, _MainTex_TexelSize.xy);
-				return color;
+				// Get the depth buffer value at this pixel.
+			float d = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, i.uv_depth);
+			// H is the viewport position at this pixel in the range -1 to 1.
+			float4 H = float4(i.uv.x * 2 - 1, i.uv.y * 2 - 1, d * 2 - 1, 1);
+			// Transform by the view-projection inverse.
+			float4 D = mul(_CurrentViewProjectionInverseMatrix, H);
+			// Divide by w to get the world position. 
+			float4 worldPos = D / D.w;
+
+			// Current viewport position 
+			float4 currentPos = H;
+			// Use the world position, and transform by the previous view-projection matrix.  
+			float4 previousPos = mul(_PreviousViewProjectionMatrix, worldPos);
+			// Convert to nonhomogeneous points [-1,1] by dividing by w.
+			previousPos /= previousPos.w;
+
+			// Use this frame's position and last frame's to compute the pixel velocity.
+			//float2 velocity = (currentPos.xy - previousPos.xy) / 2.0f;
+			float2 velocity = (currentPos.xy - previousPos.xy);
+
+			float2 uv = i.uv;
+			float4 c = tex2D(_MainTex, uv);
+			uv += velocity * _BlurSize;
+			for (int it = 1; it < 3; it++, uv += velocity * _BlurSize) {
+				float4 currentColor = tex2D(_MainTex, uv);
+				c += currentColor;
+			}
+			c /= 3;
+
+			return fixed4(c.rgb, 1.0);
 			}
 
 

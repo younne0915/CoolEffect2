@@ -10,15 +10,13 @@ namespace Sokkayo
 
         RenderTexture _renderTex;
         CommandBuffer _transparentBuffer;
-
-        private float _blurIntensity = 2;
-
-        private int iterator = 6;
-
-        private int MaxIterations = 60;
         int[] _tempRenderTextureDownIds;
 
-        public MotionBlurEffect(Camera camera) : base(camera)
+        Matrix4x4 previousViewProjectionMatrix;
+
+        private MotionBlurEffectData _motionBlurEffectData;
+
+        public MotionBlurEffect(Camera camera, EffectDataBase effectData) : base(camera, effectData)
         {
             
         }
@@ -27,19 +25,30 @@ namespace Sokkayo
         {
             base.Initialize();
             _transparentBuffer = new CommandBuffer();
+            _motionBlurEffectData = _effectData as MotionBlurEffectData;
 
-            _tempRenderTextureDownIds = new int[MaxIterations];
-            for (int i = 0; i < MaxIterations; i++)
+            _tempRenderTextureDownIds = new int[_motionBlurEffectData.maxIterations];
+            for (int i = 0; i < _motionBlurEffectData.maxIterations; i++)
             {
                 _tempRenderTextureDownIds[i] = Shader.PropertyToID($"_BloomTempDown{i}");
             }
 
-            //_targetCamera.depthTextureMode = DepthTextureMode.Depth | DepthTextureMode.MotionVectors;
+            previousViewProjectionMatrix = _targetCamera.projectionMatrix * _targetCamera.worldToCameraMatrix;
+        }
 
+        public void Update()
+        {
+            _opaqueBuffer.SetGlobalMatrix("_PreviousViewProjectionMatrix", previousViewProjectionMatrix);
+            Matrix4x4 currentViewProjectionMatrix = _targetCamera.projectionMatrix * _targetCamera.worldToCameraMatrix;
+            Matrix4x4 currentViewProjectionInverseMatrix = currentViewProjectionMatrix.inverse;
+            _opaqueBuffer.SetGlobalMatrix("_CurrentViewProjectionInverseMatrix", currentViewProjectionInverseMatrix);
+            previousViewProjectionMatrix = currentViewProjectionMatrix;
         }
 
         public override void StartEffect()
         {
+            if (_state == EffectState.Running) return;
+
             if (_renderTex != null)
             {
                 _renderTex.Release();
@@ -54,10 +63,11 @@ namespace Sokkayo
 
             _opaqueBuffer.Clear();
             _opaqueBuffer.Blit(BuiltinRenderTextureType.CurrentActive, _renderTex);
-            //_opaqueBuffer.Blit(BuiltinRenderTextureType.CurrentActive, _renderTex, _mat, 0);
-            _opaqueBuffer.SetGlobalFloat(ShaderProperties.BlurIntensity, _blurIntensity);
+            _opaqueBuffer.SetGlobalFloat(ShaderProperties.BlurSize, _motionBlurEffectData.blurSize);
+            
+
             RenderTargetIdentifier source = _renderTex;
-            for (int i = 0; i < iterator; i++)
+            for (int i = 0; i < _motionBlurEffectData.iterator; i++)
             {
                 var mipDown = _tempRenderTextureDownIds[i];
 
@@ -81,6 +91,17 @@ namespace Sokkayo
                 _targetCamera.AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _transparentBuffer);
             }
 
+        }
+
+        public override void ReleaseEffect()
+        {
+            base.ReleaseEffect();
+
+            if (_targetCamera != null)
+            {
+                _targetCamera.RemoveCommandBuffer(CameraEvent.AfterForwardOpaque, _opaqueBuffer);
+                _targetCamera.RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _transparentBuffer);
+            }
         }
     }
 }

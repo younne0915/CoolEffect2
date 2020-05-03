@@ -21,7 +21,7 @@ namespace Sokkayo
         int[] _tempRenderTextureDownIds;
 
 
-        public DepthOfFieldEffect(Camera camera) : base(camera)
+        public DepthOfFieldEffect(Camera camera, EffectDataBase effectData) : base(camera, effectData)
         {
         }
 
@@ -64,7 +64,7 @@ namespace Sokkayo
             _targetCamera.targetTexture = tempTex;
 
             _opaqueBuffer.Clear();
-            _opaqueBuffer.SetGlobalFloat(ShaderProperties.BlurIntensity, _blurIntensity);
+            _opaqueBuffer.SetGlobalFloat(ShaderProperties.BlurSize, _blurIntensity);
 
             RenderTargetIdentifier source = tempTex;
             
