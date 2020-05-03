@@ -50,16 +50,12 @@ public class EffectCtrl : MonoBehaviour
         motionBlurBtn.onClick.AddListener(MotionBlurClick);
 
         mainCam.depthTextureMode = DepthTextureMode.Depth | DepthTextureMode.MotionVectors;
-        bool issupportsMotionVectors = SystemInfo.supportsMotionVectors;
-
-        Debug.LogErrorFormat("issupportsMotionVectors = {0}", issupportsMotionVectors);
     }
 
     private void MotionBlurClick()
     {
         _IsMove = true;
 
-        Debug.LogErrorFormat("MotionBlurClick");
 
         if(motionBlur == null)
         {
