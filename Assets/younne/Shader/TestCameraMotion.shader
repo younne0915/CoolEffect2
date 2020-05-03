@@ -36,15 +36,6 @@
 			float4 _MainTex_ST;
 			sampler2D _CameraDepthTexture;
 
-			//Camera motion vectors texture
-			//Texture2D _CameraMotionVectorsTexture;
-			//SamplerState sampler_CameraMotionVectorsTexture;
-			//float4 _CameraMotionVectorsTexture_TexelSize;
-
-			//Texture2D _CameraDepthTexture;
-			//SamplerState sampler_CameraDepthTexture;
-			//float4 _CameraDepthTexture_TexelSize;
-
 			v2f vert(appdata v)
 			{
 				v2f o;
@@ -57,9 +48,11 @@
 			fixed4 frag(v2f i) : SV_Target
 			{
 				fixed4 color = tex2D(_MainTex, i.uv);
-				float d = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, i.uv);
+				float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, i.uv);
 
-				return d;
+				depth = Linear01Depth(depth);
+				return float4(depth, depth, depth, 1);
+				return depth;
 				//color = _CameraDepthTexture.Sample(sampler_CameraDepthTexture, i.uv);
 				return color;
 			}

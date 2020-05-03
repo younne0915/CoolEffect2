@@ -13,7 +13,7 @@ namespace Sokkayo
 
         private float _blurIntensity = 2;
 
-        private int iterator = 1;
+        private int iterator = 6;
 
         private int MaxIterations = 60;
         int[] _tempRenderTextureDownIds;
@@ -55,7 +55,7 @@ namespace Sokkayo
             _opaqueBuffer.Clear();
             _opaqueBuffer.Blit(BuiltinRenderTextureType.CurrentActive, _renderTex);
             //_opaqueBuffer.Blit(BuiltinRenderTextureType.CurrentActive, _renderTex, _mat, 0);
-
+            _opaqueBuffer.SetGlobalFloat(ShaderProperties.BlurIntensity, _blurIntensity);
             RenderTargetIdentifier source = _renderTex;
             for (int i = 0; i < iterator; i++)
             {

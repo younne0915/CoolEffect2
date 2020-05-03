@@ -37,9 +37,15 @@
             Texture2D _MainTex; 
             SamplerState sampler_MainTex;
 
-			// Camera motion vectors texture
-			TEXTURE2D_SAMPLER2D(_CameraMotionVectorsTexture, sampler_CameraMotionVectorsTexture);
-			float4 _CameraMotionVectorsTexture_TexelSize;
+			//// Camera motion vectors texture
+			//TEXTURE2D_SAMPLER2D(_CameraMotionVectorsTexture, sampler_CameraMotionVectorsTexture);
+			//float4 _CameraMotionVectorsTexture_TexelSize;
+
+			Texture2D _CameraMotionVectorsTexture;
+			SamplerState sampler_CameraMotionVectorsTexture;
+
+			Texture2D _CameraDepthTexture;
+			SamplerState sampler_CameraDepthTexture;
 
 			float _BlurIntensity = 2;
 
@@ -70,14 +76,14 @@
 
             fixed4 frag (v2f i) : SV_Target
             {
-                // sample the texture
-                //fixed4 col = tex2D(_MainTex, i.uv);
-                // apply fog
-                //UNITY_APPLY_FOG(i.fogCoord, col);
-                //return col;
-
                 half4 color = DownsampleBox4Tap(_MainTex, sampler_MainTex, i.uv, _MainTex_TexelSize.xy);
+
+				//color = _CameraDepthTexture.Sample(sampler_CameraDepthTexture, i.uv);
+				//color = _CameraMotionVectorsTexture.Sample(sampler_CameraMotionVectorsTexture, i.uv);
+
                 //return Prefilter(SafeHDR(color), i.uv);
+
+
                 return color;
             }
 
