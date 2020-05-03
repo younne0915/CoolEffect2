@@ -73,8 +73,8 @@
 			previousPos /= previousPos.w;
 
 			// Use this frame's position and last frame's to compute the pixel velocity.
-			//float2 velocity = (currentPos.xy - previousPos.xy) / 2.0f;
-			float2 velocity = (currentPos.xy - previousPos.xy);
+			float2 velocity = (currentPos.xy - previousPos.xy) / 2.0f;
+			//float2 velocity = (currentPos.xy - previousPos.xy);
 
 			float2 uv = i.uv;
 			float4 c = tex2D(_MainTex, uv);

@@ -23,7 +23,7 @@ public class CameraPosSync : MonoBehaviour
 
     }
 
-    private void Update()
+    private void LateUpdate()
     {
         transform.position = targetTrans.position + _deltVec;
     }
