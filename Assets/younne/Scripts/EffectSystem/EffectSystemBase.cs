@@ -21,12 +21,14 @@ namespace Sokkayo
     public class EffectSystemBase : IDisposable
     {
         protected CommandBuffer _opaqueBuffer;
+        protected CommandBuffer _transparentBuffer;
         protected Camera _targetCamera;
         protected Material _mat;
         protected EffectDataBase _effectData;
         protected virtual Shader _shader { get; }
 
         protected EffectState _state = EffectState.Idle;
+        protected RenderTexture _renderTex;
 
         public EffectSystemBase(Camera camera, EffectDataBase effectData)
         {
@@ -42,7 +44,9 @@ namespace Sokkayo
 
         protected virtual void Initialize()
         {
-            _opaqueBuffer = new CommandBuffer() { name = this.ToString() };
+            _opaqueBuffer = new CommandBuffer() { name = this.ToString() + "Opaque" };
+            _transparentBuffer = new CommandBuffer() { name = this.ToString() + "Transparent" };
+
             CreateMat();
         }
 
@@ -63,6 +67,17 @@ namespace Sokkayo
         public virtual void StartEffect()
         {
             _state = EffectState.Running;
+
+            if (_renderTex != null)
+            {
+                _renderTex.Release();
+            }
+
+            _renderTex = new RenderTexture(_targetCamera.pixelWidth, _targetCamera.pixelHeight, 200,
+                    RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
+            _renderTex.name = "RenderTex";
+            _renderTex.antiAliasing = 1;
+            _renderTex.Create();
         }
 
         public virtual void ReleaseEffect()

@@ -8,7 +8,6 @@ namespace Sokkayo
     {
         protected override Shader _shader => Shader.Find("younne/MotionBlur");
 
-        RenderTexture _renderTex;
         CommandBuffer _transparentBuffer;
         int[] _tempRenderTextureDownIds;
 
@@ -38,6 +37,11 @@ namespace Sokkayo
 
         public void Update()
         {
+            SetPagram();
+        }
+
+        private void SetPagram()
+        {
             _opaqueBuffer.SetGlobalMatrix("_PreviousViewProjectionMatrix", previousViewProjectionMatrix);
             Matrix4x4 currentViewProjectionMatrix = _targetCamera.projectionMatrix * _targetCamera.worldToCameraMatrix;
             Matrix4x4 currentViewProjectionInverseMatrix = currentViewProjectionMatrix.inverse;
@@ -48,26 +52,14 @@ namespace Sokkayo
         public override void StartEffect()
         {
             if (_state == EffectState.Running) return;
-
-            if (_renderTex != null)
-            {
-                _renderTex.Release();
-            }
-
-            _renderTex = new RenderTexture(_targetCamera.pixelWidth, _targetCamera.pixelHeight, 200,
-                    RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
-            _renderTex.name = "RenderTex";
-            _renderTex.antiAliasing = 1;
-            _renderTex.Create();
-
+            base.StartEffect();
 
             _opaqueBuffer.Clear();
             _opaqueBuffer.Blit(BuiltinRenderTextureType.CurrentActive, _renderTex);
             _opaqueBuffer.SetGlobalFloat(ShaderProperties.BlurSize, _motionBlurEffectData.blurSize);
-            
 
             RenderTargetIdentifier source = _renderTex;
-            for (int i = 0; i < _motionBlurEffectData.iterator; i++)
+            for (int i = 0; i < _motionBlurEffectData.totalIterator; i++)
             {
                 var mipDown = _tempRenderTextureDownIds[i];
 
@@ -81,6 +73,7 @@ namespace Sokkayo
             }
 
             _opaqueBuffer.Blit(source, _renderTex);
+
 
             _transparentBuffer.Clear();
             _transparentBuffer.Blit(_renderTex, BuiltinRenderTextureType.CurrentActive);
@@ -99,9 +92,11 @@ namespace Sokkayo
 
             if (_targetCamera != null)
             {
-                _targetCamera.RemoveCommandBuffer(CameraEvent.AfterForwardOpaque, _opaqueBuffer);
+                _targetCamera.RemoveCommandBuffer(CameraEvent.AfterSkybox, _opaqueBuffer);
                 _targetCamera.RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _transparentBuffer);
             }
+
+            //TODO release mipDown
         }
     }
 }
