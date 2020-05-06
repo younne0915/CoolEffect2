@@ -97,6 +97,11 @@ namespace Sokkayo
             }
 
             //TODO release mipDown
+
+            for (int i = 0; i < _motionBlurEffectData.maxIterations; i++)
+            {
+                
+            }
         }
     }
 }

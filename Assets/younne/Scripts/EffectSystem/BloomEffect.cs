@@ -11,6 +11,9 @@ namespace Sokkayo
         protected override Shader _shader => Shader.Find("younne/Bloom");
 
         private BloomData _bloomData;
+
+        private List<RenderTexture> _releaseLit = new List<RenderTexture>();
+
         public BloomEffect(Camera camera, EffectDataBase effectData) : base(camera, effectData)
         {
             _bloomData = _effectData as BloomData;
@@ -72,6 +75,12 @@ namespace Sokkayo
 
             //RenderTexture.ReleaseTemporary(buffer0);
             //RenderTexture.ReleaseTemporary(tempTex);
+
+            _releaseLit.Add(buffer0);
+            _releaseLit.Add(tempTex);
+
+            //_opaqueBuffer.GetTemporaryRT()
+
         }
 
         public void Update()
@@ -82,6 +91,23 @@ namespace Sokkayo
         private void SetPagram()
         {
             _mat.SetFloat("_LuminanceThreshold", _bloomData.luminanceThreshold);
+        }
+
+        public override void ReleaseEffect()
+        {
+            base.ReleaseEffect();
+
+            RenderTexture releaseTex = null;
+            for (int i = 0; i < _releaseLit.Count; i++)
+            {
+                releaseTex = _releaseLit[i];
+                if(releaseTex != null)
+                {
+                    RenderTexture.ReleaseTemporary(releaseTex);
+                    RenderTexture.ReleaseTemporary(releaseTex);
+                }
+            }
+            _releaseLit.Clear();
         }
     }
 }
