@@ -32,8 +32,6 @@ namespace Sokkayo
             _opaqueBuffer.Clear();
             _opaqueBuffer.Blit(BuiltinRenderTextureType.CurrentActive, _renderTex);
 
-
-
             _opaqueBuffer.Blit(_renderTex, buffer0, _mat, 0);
 
             _mat.SetFloat(ShaderProperties.BlurSize, _bloomData.blurSize);
@@ -65,22 +63,15 @@ namespace Sokkayo
             RenderTexture tempTex = RenderTexture.GetTemporary(rtW, rtH, 24);
             _opaqueBuffer.Blit(_renderTex, tempTex);
 
-            _transparentBuffer.Blit(tempTex, BuiltinRenderTextureType.CurrentActive, _mat, 3);
+            _opaqueBuffer.Blit(tempTex, BuiltinRenderTextureType.CameraTarget, _mat, 3);
 
             if (_targetCamera != null)
             {
                 _targetCamera.AddCommandBuffer(CameraEvent.AfterImageEffects, _opaqueBuffer);
-                _targetCamera.AddCommandBuffer(CameraEvent.AfterEverything, _transparentBuffer);
             }
-
-            //RenderTexture.ReleaseTemporary(buffer0);
-            //RenderTexture.ReleaseTemporary(tempTex);
 
             _releaseLit.Add(buffer0);
             _releaseLit.Add(tempTex);
-
-            //_opaqueBuffer.GetTemporaryRT()
-
         }
 
         public void Update()
@@ -103,7 +94,6 @@ namespace Sokkayo
                 releaseTex = _releaseLit[i];
                 if(releaseTex != null)
                 {
-                    RenderTexture.ReleaseTemporary(releaseTex);
                     RenderTexture.ReleaseTemporary(releaseTex);
                 }
             }

@@ -8,7 +8,6 @@ namespace Sokkayo
     {
         protected override Shader _shader => Shader.Find("younne/MotionBlur");
 
-        CommandBuffer _transparentBuffer;
         int[] _tempRenderTextureDownIds;
 
         Matrix4x4 previousViewProjectionMatrix;
@@ -23,7 +22,6 @@ namespace Sokkayo
         protected override void Initialize()
         {
             base.Initialize();
-            _transparentBuffer = new CommandBuffer();
             _motionBlurEffectData = _effectData as MotionBlurEffectData;
 
             _tempRenderTextureDownIds = new int[_motionBlurEffectData.maxIterations];
@@ -55,7 +53,7 @@ namespace Sokkayo
             base.StartEffect();
 
             _opaqueBuffer.Clear();
-            _opaqueBuffer.Blit(BuiltinRenderTextureType.CurrentActive, _renderTex);
+            _opaqueBuffer.Blit(BuiltinRenderTextureType.None, _renderTex);
             _opaqueBuffer.SetGlobalFloat(ShaderProperties.BlurSize, _motionBlurEffectData.blurSize);
 
             RenderTargetIdentifier source = _renderTex;
@@ -72,16 +70,11 @@ namespace Sokkayo
                 source = mipDown;
             }
 
-            _opaqueBuffer.Blit(source, _renderTex);
-
-
-            _transparentBuffer.Clear();
-            _transparentBuffer.Blit(_renderTex, BuiltinRenderTextureType.CurrentActive);
+            _opaqueBuffer.Blit(source, BuiltinRenderTextureType.CameraTarget);
 
             if (_targetCamera != null)
             {
                 _targetCamera.AddCommandBuffer(CameraEvent.AfterSkybox, _opaqueBuffer);
-                _targetCamera.AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _transparentBuffer);
             }
 
         }
@@ -93,11 +86,9 @@ namespace Sokkayo
             if (_targetCamera != null)
             {
                 _targetCamera.RemoveCommandBuffer(CameraEvent.AfterSkybox, _opaqueBuffer);
-                _targetCamera.RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _transparentBuffer);
             }
 
             //TODO release mipDown
-
             for (int i = 0; i < _motionBlurEffectData.maxIterations; i++)
             {
                 

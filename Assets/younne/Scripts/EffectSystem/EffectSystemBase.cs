@@ -21,7 +21,6 @@ namespace Sokkayo
     public class EffectSystemBase : IDisposable
     {
         protected CommandBuffer _opaqueBuffer;
-        protected CommandBuffer _transparentBuffer;
         protected Camera _targetCamera;
         protected Material _mat;
         protected EffectDataBase _effectData;
@@ -45,7 +44,6 @@ namespace Sokkayo
         protected virtual void Initialize()
         {
             _opaqueBuffer = new CommandBuffer() { name = this.ToString() + "Opaque" };
-            _transparentBuffer = new CommandBuffer() { name = this.ToString() + "Transparent" };
 
             CreateMat();
         }
