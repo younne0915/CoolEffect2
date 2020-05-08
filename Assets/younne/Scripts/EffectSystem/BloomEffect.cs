@@ -40,14 +40,14 @@ namespace Sokkayo
             {
                 _mat.SetFloat("_BlurSize", 1.0f + i * _bloomData.blurSize);
 
-                RenderTexture buffer1 = RenderTexture.GetTemporary(rtW, rtH, 24);
+                RenderTexture buffer1 = RenderTexture.GetTemporary(rtW, rtH, 0);
 
                 // Render the vertical pass
                 _opaqueBuffer.Blit(buffer0, buffer1, _mat, 1);
 
                 RenderTexture.ReleaseTemporary(buffer0);
                 buffer0 = buffer1;
-                buffer1 = RenderTexture.GetTemporary(rtW, rtH, 24);
+                buffer1 = RenderTexture.GetTemporary(rtW, rtH, 0);
 
                 // Render the horizontal pass
                 _opaqueBuffer.Blit(buffer0, buffer1, _mat, 2);
@@ -60,7 +60,7 @@ namespace Sokkayo
 
             _mat.SetTexture("_Bloom", buffer0);
 
-            RenderTexture tempTex = RenderTexture.GetTemporary(rtW, rtH, 24);
+            RenderTexture tempTex = RenderTexture.GetTemporary(rtW, rtH, 0);
             _opaqueBuffer.Blit(_renderTex, tempTex);
 
             _opaqueBuffer.Blit(tempTex, BuiltinRenderTextureType.CameraTarget, _mat, 3);
