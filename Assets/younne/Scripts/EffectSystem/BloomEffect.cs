@@ -120,8 +120,6 @@ namespace Sokkayo
         private BloomData _bloomData;
         private int[] _bloomTexArr = new int[16];
 
-        private bool _init = false;
-
         public BloomEffect(Camera camera, EffectDataBase effectData) : base(camera, CameraEvent.AfterImageEffects)
         {
             _bloomData = effectData as BloomData;
@@ -197,9 +195,6 @@ namespace Sokkayo
 
         private void SetPagram()
         {
-            if (_init) return;
-            _init = true;
-
             float knee = _bloomData.threshold * _bloomData.softThreshold;
             Vector4 filter;
             filter.x = _bloomData.threshold;
