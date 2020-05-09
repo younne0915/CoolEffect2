@@ -14,15 +14,14 @@ namespace Sokkayo
 
         private MotionBlurEffectData _motionBlurEffectData;
 
-        public MotionBlurEffect(Camera camera, EffectDataBase effectData) : base(camera, effectData)
+        public MotionBlurEffect(Camera camera, EffectDataBase effectData) : base(camera, CameraEvent.AfterSkybox)
         {
-            
+            _motionBlurEffectData = effectData as MotionBlurEffectData;
         }
 
         protected override void Initialize()
         {
             base.Initialize();
-            _motionBlurEffectData = _effectData as MotionBlurEffectData;
 
             _tempRenderTextureDownIds = new int[_motionBlurEffectData.maxIterations];
             for (int i = 0; i < _motionBlurEffectData.maxIterations; i++)
@@ -53,7 +52,7 @@ namespace Sokkayo
             base.StartEffect();
 
             _opaqueBuffer.Clear();
-            _opaqueBuffer.Blit(BuiltinRenderTextureType.None, _renderTex);
+            _opaqueBuffer.Blit(BuiltinRenderTextureType.CurrentActive, _renderTex);
             _opaqueBuffer.SetGlobalFloat(ShaderProperties.BlurSize, _motionBlurEffectData.blurSize);
 
             RenderTargetIdentifier source = _renderTex;
@@ -74,7 +73,7 @@ namespace Sokkayo
 
             if (_targetCamera != null)
             {
-                _targetCamera.AddCommandBuffer(CameraEvent.AfterSkybox, _opaqueBuffer);
+                _targetCamera.AddCommandBuffer(_triggerEvent, _opaqueBuffer);
             }
 
         }
@@ -83,15 +82,15 @@ namespace Sokkayo
         {
             base.ReleaseEffect();
 
-            if (_targetCamera != null)
-            {
-                _targetCamera.RemoveCommandBuffer(CameraEvent.AfterSkybox, _opaqueBuffer);
-            }
-
             //TODO release mipDown
             for (int i = 0; i < _motionBlurEffectData.maxIterations; i++)
             {
-                
+                _opaqueBuffer.ReleaseTemporaryRT(_tempRenderTextureDownIds[i]);
+            }
+
+            if (_targetCamera != null)
+            {
+                _targetCamera.RemoveCommandBuffer(_triggerEvent, _opaqueBuffer);
             }
         }
     }

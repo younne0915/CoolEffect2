@@ -23,16 +23,16 @@ namespace Sokkayo
         protected CommandBuffer _opaqueBuffer;
         protected Camera _targetCamera;
         protected Material _mat;
-        protected EffectDataBase _effectData;
         protected virtual Shader _shader { get; }
 
         protected EffectState _state = EffectState.Idle;
         protected RenderTexture _renderTex;
+        protected CameraEvent _triggerEvent;
 
-        public EffectSystemBase(Camera camera, EffectDataBase effectData)
+        public EffectSystemBase(Camera camera, CameraEvent cameraEvent)
         {
             _targetCamera = camera;
-            _effectData = effectData;
+            _triggerEvent = cameraEvent;
             if (camera == null)
             {
                 Debug.LogError("[EffectSystem] Effect Target Is Null, Error");

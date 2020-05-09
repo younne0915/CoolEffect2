@@ -1318,10 +1318,11 @@ MonoBehaviour:
     totalIterator: 1
     maxIterations: 6
   bloomData:
-    blurSize: 0.61
-    totalIterator: 1
-    downSample: 2
-    luminanceThreshold: 0.6
+    iterations: 5
+    threshold: 1
+    softThreshold: 0.5
+    intensity: 3
+    debug: 0
   image: {fileID: 753045581}
 --- !u!4 &1332681877 stripped
 Transform:
@@ -1639,6 +1640,7 @@ GameObject:
   - component: {fileID: 1640135003}
   - component: {fileID: 1640135002}
   - component: {fileID: 1640135005}
+  - component: {fileID: 1640135006}
   m_Layer: 0
   m_Name: MainCamera
   m_TagString: MainCamera
@@ -1723,6 +1725,24 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   targetTrans: {fileID: 576095980}
+--- !u!114 &1640135006
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1640135001}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bcca58ad562c8484cb7d2ca77da6008c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  iterations: 1
+  threshold: 1
+  bloomShader: {fileID: 4800000, guid: efd8ef0da20a6ca4b99b3714e9073e99, type: 3}
+  debug: 0
+  softThreshold: 0.5
+  intensity: 1
 --- !u!1 &1656304930
 GameObject:
   m_ObjectHideFlags: 0

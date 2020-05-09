@@ -9,19 +9,12 @@ namespace Sokkayo
     public class DepthOfFieldEffect : EffectSystemBase
     {
         protected override Shader _shader => Shader.Find("younne/BlurEffect");
-
-        CommandBuffer _transparentBuffer = new CommandBuffer();
-        RenderTexture _renderTex;
-
         private float _blurIntensity = 2;
-
         private int iterator = 6;
-
         private int MaxIterations = 6;
         int[] _tempRenderTextureDownIds;
 
-
-        public DepthOfFieldEffect(Camera camera, EffectDataBase effectData) : base(camera, effectData)
+        public DepthOfFieldEffect(Camera camera, EffectDataBase effectData) : base(camera, CameraEvent.AfterForwardOpaque)
         {
         }
 
@@ -49,13 +42,13 @@ namespace Sokkayo
                 _renderTex.Release();
             }
 
-            _renderTex = new RenderTexture(_targetCamera.pixelWidth, _targetCamera.pixelHeight, 200,
+            _renderTex = new RenderTexture(_targetCamera.pixelWidth, _targetCamera.pixelHeight, 0,
                     RenderTextureFormat.Default, RenderTextureReadWrite.sRGB);
             _renderTex.name = "RenderTex";
             _renderTex.antiAliasing = 1;
             _renderTex.Create();
 
-            var tempTex = new RenderTexture(_targetCamera.pixelWidth, _targetCamera.pixelHeight, 200,
+            var tempTex = new RenderTexture(_targetCamera.pixelWidth, _targetCamera.pixelHeight, 0,
                    RenderTextureFormat.Default, RenderTextureReadWrite.sRGB);
             tempTex.name = "TempTex";
             tempTex.antiAliasing = 1;
@@ -83,12 +76,6 @@ namespace Sokkayo
 
             _opaqueBuffer.Blit(source, tempTex);
 
-            //RenderTexture total = source;
-            //MotionEffectCtrl.Instance.image.texture = source;
-
-            _transparentBuffer.Clear();
-            _transparentBuffer.Blit(tempTex, BuiltinRenderTextureType.CurrentActive);
-
             for (int i = 0; i < iterator; i++)
             {
                 var mipDown = _tempRenderTextureDownIds[i];
@@ -97,9 +84,8 @@ namespace Sokkayo
 
             if (_targetCamera != null)
             {
-                _targetCamera.AddCommandBuffer(CameraEvent.AfterSkybox, _opaqueBuffer);
+                _targetCamera.AddCommandBuffer(_triggerEvent, _opaqueBuffer);
             }
-            MotionEffectCtrl.Instance.mainCam.AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _transparentBuffer);
         }
 
 
@@ -108,13 +94,10 @@ namespace Sokkayo
         {
             base.ReleaseEffect();
 
-
             if (_targetCamera != null)
             {
-                _targetCamera.enabled = false;
-                _targetCamera.RemoveCommandBuffer(CameraEvent.AfterForwardOpaque, _opaqueBuffer);
+                _targetCamera.RemoveCommandBuffer(_triggerEvent, _opaqueBuffer);
             }
-            MotionEffectCtrl.Instance.mainCam.RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _transparentBuffer);
         }
     }
 }
